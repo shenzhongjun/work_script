@@ -1,0 +1,57 @@
+headline: #左侧:代提取txt文件标题，右侧提取后的文件标题
+    inputAdd: [qual, DEPTH, CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO, FORMAT] #导入文件时增加的列名
+    basic:
+      - Chr: Chr
+      - Start: Start
+      - End: End
+      - Ref: Ref
+      - Alt: Alt
+    freq: #vcf提取并计算
+      - TotalDepth: TotalDepth #从vcf提取总深度
+      - RefDepth: RefDepth
+      - AltDepth: AltDepth
+      - MutFreq: MutFreq
+    HC: #从vcf提取
+      - HetHom: HetHom
+      - FS: FS
+      - QUAL,MQ: QUAL,MQ #LR_pred,MQ
+    geneinfor:
+      - Gene.refGene: Gene
+      - Exon: Exon #从AAChange计算
+      - Func.refGene: Func
+      - ExonicFunc.refGene: ExonicFunc
+      - AAChange.refGene: GeneDetail_AAchange #查找GeneDetail并替换
+    database:
+      - cytoBand: cytoBand
+      - CLNALLELEID: CLNALLELEID
+      - CLNDN: CLNDN
+      - CLNDISDB: CLNDISDB
+      - CLNREVSTAT: CLNREVSTAT
+      - cosmic68: cosmic
+      - snp138: dbSNP
+      - 1000g2015aug_all: 1000G_All
+      - esp6500si_all: esp6500siv2_all
+      - SIFT_score: SIFT_score
+      - SIFT_pred: SIFT_pred
+      - Polyphen2_HDIV_score: Polyphen2_HDIV_score
+      - Polyphen2_HDIV_pred: Polyphen2_HDIV_pred
+      - Polyphen2_HVAR_score: Polyphen2_HVAR_score
+      - Polyphen2_HVAR_pred: Polyphen2_HVAR_pred
+      - LRT_pred: LRT_pred
+      - MutationTaster_score: MutationTaster_score
+      - MutationTaster_pred: MutationTaster_pred
+      - MutationAssessor_score: MutationAssessor_score
+      - MutationAssessor_pred: MutationAssessor_pred
+      - FATHMM_score: FATHMM_score
+      - FATHMM_pred: FATHMM_pred
+      - RadialSVM_score: RadialSVM_score
+      - RadialSVM_pred: RadialSVM_pred
+      - LR_score: LR_score
+      - LR_pred: LR_pred
+      - VEST3_score: VEST3_score
+      - CADD_raw: CADD_raw
+      - CADD_phred: CADD_phred
+      - GERP++_RS: GERP++_RS
+      - phyloP46way_placental: phyloP46way_placental
+      - phyloP100way_vertebrate: phyloP100way_vertebrate
+      - SiPhy_29way_logOdds: SiPhy_29way_logOdds

@@ -1,0 +1,1 @@
+python mutationVisualize.py --bam /mnt/share05/clinical_project/projects/blood_tumor/test/cut_reads/01.20210916/01.NPC69_analysis/bing3S69/bwa_alignment/bing3S69/bing3S69.final.bam --mutlist page.vcf  --html test.html --ref /mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/J_hg19_reference/hg19_reference_with_NC.fasta --tlenfile tlen.txt

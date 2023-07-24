@@ -1,0 +1,2 @@
+chr	start	end	ref	alt	gene
+chr16	3788618	3788618	G	A	CREBBP_p.R1446C

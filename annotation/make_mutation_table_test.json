@@ -1,0 +1,80 @@
+{
+  "cons_replace_dict": {
+    "transcript_ablation": "转录本缺失", "splice_acceptor_variant": "剪切位点突变",
+    "splice_donor_variant": "剪切位点突变",
+    "stop_gained": "截断突变", "frameshift_variant": "移码突变", "stop_lost": "延长突变",
+    "start_lost": "起始密码子突变",
+    "transcript_amplification": "转录本扩增", "inframe_insertion": "非移码插入", "inframe_deletion": "非移码缺失",
+    "missense_variant": "错义突变", "protein_altering_variant": "预测蛋白序列改变",
+    "splice_region_variant": "剪切位点附近突变",
+    "splice_donor_5th_base_variant": "剪切位点附近突变", "splice_donor_region_variant": "剪切位点附近突变",
+    "splice_polypyrimidine_tract_variant": "剪切位点附近突变", "start_retained_variant": "起始密码子保留",
+    "stop_retained_variant": "终止密码子保留", "synonymous_variant": "同义突变",
+    "coding_sequence_variant": "编码序列改变",
+    "mature_miRNA_variant": "miRNA突变", "5_prime_UTR_variant": "5`UTR突变", "3_prime_UTR_variant": "3`UTR突变",
+    "non_coding_transcript_exon_variant": "非编码外显子突变", "intron_variant": "内含子突变",
+    "NMD_transcript_variant": "NMD转录物突变",
+    "non_coding_transcript_variant": "非编码内含子突变", "upstream_gene_variant": "基因上游突变",
+    "downstream_gene_variant": "基因下游突变", "TFBS_ablation": "转录因子结合位点缺失",
+    "TFBS_amplification": "转录因子结合位点扩增",
+    "TF_binding_site_variant": "转录因子结合位点突变", "regulatory_region_ablation": "调节序列缺失",
+    "regulatory_region_amplification": "调控序列扩增", "regulatory_region_variant": "调控序列突变",
+    "intergenic_variant": "基因间区突变"
+  },
+  "strand_replace_dict": {
+    "1": "+", "-1": "-"
+  },
+  "rename_dict": {
+    "Uploaded_variation": "突变编号", "chr": "染色体", "REF_ALLELE": "参考碱基", "Allele": "突变碱基", "SYMBOL": "基因",
+    "Gene": "基因ID", "Feature": "转录本ID", "STRAND": "基因方向", "VARIANT_CLASS": "突变方式",
+    "pathogenicity": "致癌性分类", "points": "分值", "evidence": "证据条目", "EXON": "外显子位置",
+    "Interpro_domain": "Interpro结构域", "UniProt": "UniProt结构域",
+    "OncoKB": "OncoKB结论", "COSMIC": "COSV号", "COSMIC_LEGACY_ID": "COSM号", "COSMIC_CNT": "COSMIC样本数", "AA_Change_Count": "Hotspot样本数",
+    "ClinVar": "Clinvar号", "ClinVar_CLNVI": "ClinGen号", "ClinVar_CLNSIG": "Clinvar结论", "ClinVar_CLNREVSTAT":"Clinvar证据", "ClinVar_CLNDN": "Clinvar疾病",
+    "max_af": "MAX_AF", "AF": "1000g_AF", "EAS_AF": "1000g_EAS_AF", "AFR_AF": "1000g_AFR_AF", "AMR_AF": "1000g_AMR_AF",
+    "EUR_AF": "1000g_EUR_AF", "SAS_AF": "1000g_SAS_AF",
+    "gnomAD_exomes_controls_AF": "gnomADe_AF", "gnomAD_exomes_controls_EAS_AF": "gnomADe_EAS_AF",
+    "gnomAD_exomes_controls_AFR_AF": "gnomADe_AFR_AF", "gnomAD_exomes_controls_AMR_AF": "gnomADe_AMR_AF",
+    "gnomAD_exomes_controls_NFE_AF": "gnomADe_NFE_AF", "gnomAD_exomes_controls_SAS_AF": "gnomADe_SAS_AF",
+    "PUBMED": "PubMed文献", "MutationTaster_pred": "MutationTaster预测", "SpliceAI_pred": "SpliceAI预测", "filter": "突变过滤标签"
+  },
+  "final_col_list": [
+    "突变编号", "总深度_肿瘤", "突变深度_肿瘤", "突变率_肿瘤", "总深度_对照", "突变深度_对照", "突变率_对照",
+    "突变可靠性", "突变来源", "致癌性分类", "分值", "证据条目", "突变类型", "突变小类",
+    "基因", "基因ID", "转录本ID", "染色体", "起始位置", "终止位置", "参考碱基", "突变碱基", "HGVSg", "HGVSc", "HGVSp",
+    "氨基酸改变", "基因方向", "外显子位置", "rs号", "OncoKB结论", "Clinvar号", "ClinGen号", "Clinvar结论", "Clinvar证据", "Clinvar疾病",
+    "COSV号", "COSM号", "COSMIC样本数", "Hotspot样本数", "Interpro结构域", "UniProt结构域",
+    "疾病omim", "遗传方式", "疾病表型",
+    "MAX_AF", "1000g_AF", "1000g_EAS_AF", "1000g_AFR_AF", "1000g_AMR_AF", "1000g_EUR_AF", "1000g_SAS_AF",
+    "gnomADe_AF", "gnomADe_EAS_AF", "gnomADe_AFR_AF", "gnomADe_AMR_AF", "gnomADe_NFE_AF", "gnomADe_SAS_AF",
+    "WBBC_AF", "WBBC_North_AF","WBBC_Central_AF","WBBC_South_AF","WBBC_Lingnan_AF",
+    "CADD预测", "FATHMM预测", "SIFT预测", "Polyphen2_HDIV预测", "MutationTaster预测", "VEST4预测",
+    "REVEL预测", "SpliceAI预测", "dbscSNV预测",
+    "软件来源", "超级白名单", "重复区域", "突变过滤标签", "VCF位置"
+  ],
+  "amino_acids_dict": {"Ala": "A", "Phe": "F", "Cys": "C", "Sec": "U", "Asp": "D", "Asn": "N", "Glu": "E", "Gln": "Q",
+    "Gly": "G", "His": "H", "Leu": "L", "Ile": "I", "Lys": "K", "Pyl": "O", "Met": "M", "Pro": "P", "Arg": "R",
+    "Ser": "S", "Thr": "T", "Val": "V", "Trp": "W", "Tyr": "Y", "Ter": "*"
+  },
+  "key_col_list": [
+    "突变编号", "总深度_肿瘤", "突变深度_肿瘤", "突变率_肿瘤", "总深度_对照", "突变深度_对照", "突变率_对照",
+    "突变可靠性", "突变来源", "致癌性分类", "分值", "证据条目", "突变类型",
+    "基因", "转录本ID", "染色体", "起始位置", "终止位置", "参考碱基", "突变碱基", "HGVSc", "氨基酸改变",
+    "OncoKB结论", "Clinvar结论", "COSMIC样本数", "Hotspot样本数", "Interpro结构域", "UniProt结构域",
+    "疾病omim", "遗传方式", "疾病表型",
+    "MAX_AF", "CADD预测", "FATHMM预测", "超级白名单", "突变过滤标签"
+  ],
+  "rating_dict": {
+    "证据条目": ["OVS1", "OS1", "OS2", "OS3", "OM1", "OM2", "OM3", "OM4", "OP1", "OP2", "OP3", "OP4", "SBP1", "SBP2", "SBS1", "SBS2", "SBVS1"],
+    "说明": ["抑癌基因功能缺失突变", "本地数据库收录为致癌突变（暂未实现）", "公开数据库收录为致癌/可能致癌突变",
+      "癌症热点库中有此突变的样本数较多", "突变位于蛋白功能域", "原癌基因/抑癌基因的非移码插入/缺失；抑癌基因的终止密码子突变；",
+      "与本地数据库收录为致癌突变具有相同氨基酸位置的突变（暂未实现）", "癌症热点库中有此突变的样本数适中", "FATHMM和CADD均预测为有害突变",
+      "具有单一遗传病因的恶性肿瘤基因体细胞变异（暂不实现）", "癌症热点库中有此突变的样本数较少", "所有人群频率<1%或无人群频率",
+      "FATHMM和CADD均预测为无害突变", "不处于剪切位点及剪切位点附近的同义突变", "1%<=任一人群频率<=5%", "公开数据库收录为良性/可能良性突变",
+      "任一人群频率>=5%"],
+    "条目分值": [8, 4, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, -1, -1, -4, -4, -8],
+    "": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    "总分": ["10分及以上", "6~9分", "0~5分", "-6~-1分", "-7分及以下", "", "", "", "", "", "", "", "", "", "", "", ""],
+    "致癌性分类": ["致癌", "可能致癌", "意义不明", "可能良性", "良性", "", "", "", "", "", "", "", "", "", "", "", ""]
+  }
+}

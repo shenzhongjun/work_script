@@ -1,0 +1,1 @@
+/mnt/share01/tools/bin/fastqc -o /mnt/share02/wangwp/scripts/project/UMI /mnt/share05/clinical_project/projects/blood_tumor/xuefei_test/UMI_naangda/demo/UMI_NanoPrep_10ng_illumina_Demo/step0.fastp/R1.fastq.gz /mnt/share05/clinical_project/projects/blood_tumor/xuefei_test/UMI_naangda/demo/UMI_NanoPrep_10ng_illumina_Demo/step0.fastp/R2.fastq.gz -t 8

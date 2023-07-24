@@ -1,0 +1,2 @@
+##Chromosome	Start_Position	End_Position	Reference_Allele	Alternative_Allele	VAF	Gene_Symbol	Variant_Type	CHECK
+2	87016465	87016465	GATAACCAGTGACAGGA	-	0.06	CD8A	deletion	no_check

@@ -1,0 +1,180 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#######################################################
+# @File     : freqComputation.py
+# @Useage   ：对vcf用annovar进行注释
+#######################################################
+import re
+import os, sys
+import yaml
+import argparse
+import pandas as pd
+
+def headName(headlineDic, mode):
+    headNameList = []
+    headList = []
+    headDic = {}
+    headNameList.extend(headlineDic['basic'])
+    headNameList.extend(headlineDic['freq'])
+    if mode == 'HC':
+        headNameList.extend(headlineDic['HC'])
+    headNameList.extend(headlineDic['geneinfor'])
+    headNameList.extend(headlineDic['database'])
+    for i in headNameList:
+        headList.extend(i.keys())
+        headDic.update(i)
+    return headDic, headList
+
+def gene2Trans(refGeneDB):
+    refGeneDic = {}
+    for line in open(refGeneDB, 'r').readlines():
+        data = line.split("\t")
+        transcript = data[1].split(".")[0]
+        refGeneDic.setdefault(transcript, data[12])
+    return refGeneDic
+
+class countFreq:
+    def __init__(self, annotTxt, annotRe,  mode, pair, headline):
+        self.annotTxt = annotTxt
+        self.annotRe = annotRe
+        self.mode = mode
+        self.pair = pair
+        self.headline = headline
+
+    def frequency(self, tformat):
+        # mutfreq = altdepth / (altdepth + refdepth). 这样计算得出的突变频率可以保留多位小数
+        # GT:DP:VD:AD:AF:RD:ALD   0/1:275:1:274,1:0.0036:210,64:1,0
+        tformats = str(tformat).split(':')
+        if len(tformats) == 1:  #vcf : ./.
+            return (0, 0, 0, 0)
+        totalDepth, altDepth, refDepth = tformats[1:4]
+        refDepth = refDepth.split(",")[0]
+        #计算突变频率
+        if totalDepth == 0:
+            MutFreq = '-'
+        else:
+            MutFreq = round(int(altDepth) / int(totalDepth), 4)
+        return (altDepth, refDepth, MutFreq, totalDepth)
+
+    def exonInfo(self, Func, AAChange):
+        exoninfo = '.'
+        if 'exonic' in Func:
+            #RAF1:NM_002880:exon12:c.A1198C:p.T400P
+            genedetailAAchange = AAChange.split(',')
+            exon = []
+            for i in genedetailAAchange:
+                exon.append(i.split(':')[2])
+            exoninfo = ','.join(sorted(set(exon)))
+        else:
+            pass
+        return exoninfo
+
+    def run(self, annotTxt, mode, pair, headline):
+        data = pd.read_csv(annotTxt, sep="\t", dtype=object)
+        #txt文件缺少vcf部分的列名，增加列名
+        columnNames = data.columns.values.tolist()
+        columnNames.extend(headline['inputAdd'])
+        if pair == 'on':
+            columnNames.extend(['normal', 'tumor'])
+        elif pair == 'off':
+            columnNames.append('tumor')
+
+        rawAnnot = pd.read_csv(annotTxt, sep="\t", dtype=object, header=None, skiprows=1, names=columnNames)
+        rawAnnot.fillna("", inplace=True)
+
+        # 确认tumor列vcf信息是否有误
+        if pair == 'on':
+            change = 0
+            # 选择tumor和normal均有值的行判断
+            for index, row in rawAnnot.iterrows():
+                if not row['tumor'] or not row['normal'] or row['tumor'] == './.' or row['normal'] == './.':
+                    continue
+                if re.search('^0/0', str(row['tumor'])):      #Mutect2检出的normal为 0/0，tumor可能为 0/1，0/1/2等
+                    change = 1
+            if change == 1:
+                rawAnnot.rename(columns={'tumor': 'normal', 'normal': 'tumor'}, inplace=True)
+            else:
+                pass
+        temp = pd.DataFrame(index=rawAnnot.index, columns=['Exon', 'MutFreq', 'RefDepth', 'AltDepth', 'TotalDepth']) #增加列
+        temp.fillna(0, inplace=True)
+        rawAnnot = pd.concat([rawAnnot, temp], axis=1)
+
+        #计算频率，获得Exon信息
+        for index, row in rawAnnot.iterrows():
+            rawAnnot.loc[index, 'AltDepth'], rawAnnot.loc[index, 'RefDepth'], rawAnnot.loc[index, 'MutFreq'], rawAnnot.loc[index, 'TotalDepth'] = self.frequency(row['tumor'])
+            rawAnnot.loc[index, 'Exon'] = self.exonInfo(row['Func.refGene'], row['AAChange.refGene'])
+
+        if mode == 'HC':
+            rawAnnot = pd.concat([rawAnnot, pd.DataFrame(columns=['HetHom', 'FS', 'QUAL,MQ'], index=range(len(rawAnnot)))], axis=1)
+            rawAnnot['FS'] = rawAnnot['INFO'].str.findall(r'FS=([0-9.]+?);').str.get(0)
+            MQ = rawAnnot['INFO'].str.findall('MQ=([A-Za-z0-9.]+?);').str.get(0)
+            rawAnnot['QUAL,MQ'] = rawAnnot['LR_pred'].str.cat(MQ, sep=',', na_rep='')
+            rawAnnot['HetHom'] = ''
+            for index, row in rawAnnot.iterrows():
+                if re.search(r'^1/1', str(row['tumor'])) or re.search(r'^0/0', str(row['tumor'])):  # 0/0一般不存在检测结果中
+                    rawAnnot.loc[index, 'HetHom'] = 'hom'
+                else:
+                    rawAnnot.loc[index, 'HetHom'] = 'het'  # 0/1 1/2
+        #根据提取的标题行提取结果
+        rawAnnot['clinvar'] = rawAnnot['CLNDN'].copy()   #clinvar列使用CLDBN信息
+        headDic, headList = headName(headline, mode)
+        resultAnnot = rawAnnot[headList].copy()
+        resultAnnot.rename(columns=headDic, inplace=True)
+        resultAnnot = resultAnnot[~resultAnnot.MutFreq.isin(['-', 0])]
+        return resultAnnot
+
+    def pipline(self):
+        resultAnnot = self.run(self.annotTxt, self.mode, self.pair, self.headline)
+        return resultAnnot
+
+def chageDetail(resultAnnot, refGeneDic):
+    #exonic：NOC2L:NM_015658:exon9:c.918A>G:p.E306E 结果在AAChange，其他Func结果在GeneDetail
+    #intronic 结果为空； splicing NM_006190:exon16:c.1467-2dupT
+    #UTR3 UTR5 NM_001330540:c.*201_*202insTTTTT
+    #intergenic, upstream, downstream:dist=1
+    #前三行的格式均改为exonic的格式NOC2L:NM_015658:exon9:c.918A>G:p.E306E
+    for index, row in resultAnnot.iterrows():
+        gene, Func, AAChange = row['Gene'], row['Func'], row['GeneDetail_AAchange']
+        if 'intergenic' in Func or 'upstream' in Func or 'downstream' in Func or Func == 'exonic':
+            continue
+        if not AAChange or AAChange in ['UNKNOWN', 'unknown']:
+            continue
+        AAChangeDetail = re.split(r"[,;]\s*", AAChange)
+        AAChangeDetailnew = []
+        genes = gene.split(";")
+        for AA in AAChangeDetail:
+            HGVS = AA.split(":")
+            if HGVS[0] in refGeneDic.values(): #基因
+                AAChangeDetailnew.append(AA)
+            elif HGVS[0] in refGeneDic.keys(): #转录本
+                if len(genes) == 1:
+                    AAChangeDetailnew.append(genes[0] + ":" + AA)
+                    resultAnnot.loc[index, 'Gene'] = genes[0]
+                elif len(genes) > 1 and refGeneDic[HGVS[0]] in genes:
+                    AAChangeDetailnew.append(refGeneDic[HGVS[0]] + ":" + AA)
+        AAChange = ",".join(AAChangeDetailnew)
+        resultAnnot.loc[index, 'GeneDetail_AAchange'] = AAChange
+    return resultAnnot
+
+def main():
+    parser = argparse.ArgumentParser()
+    configFile = os.path.join(os.path.dirname(__file__), 'vcfAnnot.yaml')
+    parser.add_argument('--annot', action='store', dest='annot', help='annot file, txt format')
+    parser.add_argument('--annot_re', action='store', dest='annot_re', help='annot file, xls format,contain gene frequency')
+    parser.add_argument('--mode', action='store', dest='mode', default="mutect2", help='Annotation Mode (HC, mutect2)')
+    parser.add_argument('--pair', action='store', dest='pair', default='off', help='default on :paired T/N ,off:only T')
+    parser.add_argument('--config', action='store', dest='config', default=configFile, help='config file of annovar annotation')
+    parser.add_argument('--refGene', action='store', dest='refGene', default="/mnt/share01/tools/annovar/humandb/hg19_refGene.txt", help='refGene file in humandb')
+    result = parser.parse_args()
+    #读取yaml配置
+    f = open(result.config, 'r')
+    configDic = yaml.load(f, Loader=yaml.FullLoader)
+    t = countFreq(result.annot, result.annot_re, result.mode, result.pair, configDic['headline'])
+    resultAnnot = t.pipline()
+    #来源于GeneDetail.refGene的信息列增加基因，调整为OR4F5:NM_001005484:exon1:c.421-2A>G格式
+    refGeneDic = gene2Trans(result.refGene)
+    resultAnnot = chageDetail(resultAnnot, refGeneDic)
+    resultAnnot.to_csv(result.annot_re, sep="\t", header=True, index=False)
+
+if __name__ == '__main__':
+    main()

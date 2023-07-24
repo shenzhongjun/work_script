@@ -1,0 +1,14 @@
+bin:
+  insert_size: /mnt/share02/wangwp/scripts/project/UMI/module/instert_size_qc.py
+  panel_QC: /mnt/share02/wangwp/scripts/project/UMI/module/panel_qc.py
+  PCT_count: /mnt/share02/wangwp/scripts/project/UMI/module/PCTcount.py
+  UMI_QC: /mnt/share02/wangwp/scripts/project/UMI/module/UMI_qc.py
+  pick_bam: /mnt/share02/wangwp/scripts/project/UMI/module/pick_bam.py
+  check_UMI: /mnt/share02/wangwp/scripts/project/UMI/module/clean_fastq.py
+  freq_compute: /mnt/share02/wangwp/scripts/project/UMI/module/freqComputation.py
+  sentieon: /mnt/share02/xuefei/dna/sentieon/sentieon-genomics-202010.04
+  bcftools: /mnt/share01/tools/miniconda/envs/bcftools/bin/bcftools
+database:
+  bed: /mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/bed/depth_bed/NPC69.bed
+  ref: /mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/J_hg19_reference/hg19_reference_with_NC.fasta
+  dbsnp: /mnt/share01/tools/annovar/humandb/mutect2/dbsnp_138.b37.chr.vcf.gz

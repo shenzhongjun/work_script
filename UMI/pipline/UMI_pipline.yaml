@@ -1,0 +1,9 @@
+bin:
+  insert_size: /mnt/share02/wangwp/scripts/project/UMI/instert_size_qc.py
+  panel_QC: /mnt/share02/wangwp/scripts/project/UMI/quality_control_of_panel.py
+  PCT_count: /mnt/share02/wangwp/scripts/project/UMI/PCTcount.py
+  UMI_QC: /mnt/share02/wangwp/scripts/project/UMI/UMI_qc.py
+  pick_bam: /mnt/share02/wangwp/scripts/project/UMI/pick_bam.py
+database:
+  #bed: /mnt/share02/wangwp/scripts/project/UMI/bed/merge.bed
+  bed: /mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/bed/depth_bed/NPC69.bed
