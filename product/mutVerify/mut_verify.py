@@ -3,7 +3,7 @@
 
 """
 对ddPCR引物探针目录.xlsx进行数据清洗
-对输入的位点是否能否进行ddPCR实验验证进行判断
+对输入的位点是否能进行ddPCR实验验证进行判断
 """
 
 __author__ = "ZhouYiJie"
@@ -22,13 +22,16 @@ def get_mut(x):
     if 'MET Splice' in x:
         gene = 'MET'
         change = re.search(r'Mutation\((c\.[0-9]+.*)\)', x).group(1)
+        change = change.strip('c.')
     else:
         gene, change = x.split(' ')[1:3]
+        change = change.strip('p.').strip('c.')
     return [gene, change]
 
 
 if __name__ == "__main__":
     argv = sys.argv[1]
+    pd.set_option('display.max_colwidth', 100)
     if argv.endswith('xlsx'):
         df = pd.read_excel(argv)
         df = df.fillna(method='ffill', axis=0)
@@ -41,5 +44,13 @@ if __name__ == "__main__":
         df.to_csv('ddPCR.clean.txt', sep='\t', index=False)
         print(df)
     else:
-        df = pd.read_table('ddPCR.clean.txt')
-        result = df.loc[df['突变'] == argv, '验证试剂盒货号']
+        gene, change = argv.split(':')
+        change = change.strip('p.').strip('c.')
+        argv = ':'.join([gene, change])
+        df = pd.read_table(f'{os.path.dirname(os.path.realpath(__file__))}/ddPCR.clean.txt')
+        result = df[df['突变'] == argv]
+        if result.shape[0] > 0:
+            print(f"该位点可以进行实验验证：\n{result.drop('突变', axis=1).to_string(index=False)}")
+        else:
+            print('该位点无法进行实验验证')
+
