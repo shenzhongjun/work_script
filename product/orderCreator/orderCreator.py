@@ -375,7 +375,7 @@ def get_batch_data(batchs):
     codes = '/mnt/share05/data/product_raw_data/rawdata/script/cancer_code.list'
     for b in batchs:
         subprocess.call(
-            f"grep -w '{b}' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq' >> batch_tmp.txt",
+            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq' >> batch_tmp.txt",
             shell=True)
     data = subprocess.getoutput(f"awk -F '\t' '{{OFS=\",\"}}{{$1=$1;gsub(/,/, \"，\", $12); print $3,$15,$4,$5,$2,$7,$12}}' batch_tmp.txt | "
                                 f"sort -k 2,2 -k 1n,1 -t,")

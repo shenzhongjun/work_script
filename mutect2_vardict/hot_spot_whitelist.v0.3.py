@@ -83,18 +83,25 @@ class HotSpotVcf(Vcf):
             # 设置阈值：超级白名单、普通白名单、是否室间质评
             # 特殊变异检测须进行更严格的过滤，尤其是STR导致的fs过滤，否则报出假阳过多
             if not sjzp:
-                base_filter = vaf >= 0.004 and reads >= 4
-                ord_base_filter = var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
+                # 超级白名单特殊检测阈值
                 special_filter = (0.004 <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 30 and
                                   not long_indel and
                                   not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
+                # 超级白名单阈值
+                if gene == 'BRCA1' or gene == 'BRCA2':
+                    base_filter = special_filter    # 如果基因是BRCA1或BRCA2，因超级白名单有大量疑似未经验证位点，故提高阈值
+                else:
+                    base_filter = vaf >= 0.004 and reads >= 4
+                # 普通白名单特殊检测阈值
                 ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
                                       and not long_indel
                                       and not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
+                # 普通白名单阈值
+                ord_base_filter = var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
             else:
                 base_filter = vaf >= 0.001 and reads >= 2
                 ord_base_filter = var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 30 and normal_reads == 0
-                special_filter = (0.001 <= vaf <= 0.9 and reads >= 2 and normal_reads <= 1 and bq >= 30 and
+                special_filter = (0.001 <= vaf <= 0.9 and reads >= 2 and normal_reads == 0 and bq >= 30 and
                                   not ((msirep >= 3 and vaf <= 0.01) or (msirep >= 5 and vaf <= 0.05)))
                 ord_special_filter = (var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 30 and normal_reads == 0
                                          and not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
