@@ -16,12 +16,10 @@ import io
 import re
 import argparse
 import logging
-import numpy as np
 import pandas as pd
 from pandarallel import pandarallel
 import time
 import json
-import subprocess
 
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s %(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 pandarallel.initialize(progress_bar=False, nb_workers=16)       # 使用16个进程加速，与VEP保持一致
@@ -444,12 +442,17 @@ if __name__ == "__main__":
     cbio_df = cbio_df.rename({'Gene': 'cbioGene', 'HGVSg': 'cbioHGVSg'}, axis=1)
     cds_df = cbio_df[~cbio_df['Mutation Type'].isin(['Splice_Site', 'Splice_Region'])].copy()
     splice_df = cbio_df[cbio_df['Mutation Type'].isin(['Splice_Site', 'Splice_Region'])].copy()
-    cds_df['hotspot_id'] = cds_df['cbioGene'].str.cat(cds_df['Protein Change'], sep=':')  # 合并方法同Hotspot数据库
+    cds_df['hotspot_id'] = cds_df['cbioGene'].str.cat(cds_df['Protein Change'], sep=':p.')  # 合并方法同Hotspot数据库
     splice_df['splice_id'] = splice_df['cbioGene'].str.cat(splice_df['cbioHGVSg'], sep=':')
     merge_df['splice_id'] = merge_df['SYMBOL'].str.cat(merge_df['HGVSg'], sep=':')
     merge_df = merge_df.merge(cds_df, on='hotspot_id', how='left')
     merge_df = merge_df.merge(splice_df, on='splice_id', how='left')
     merge_df['OncoKB'] = merge_df['OncoKB_x'].fillna(merge_df['OncoKB_y'])  # .fillna('-')
+    merge_df = merge_df.drop(
+        ['cbioHGVSg_x', 'Mut in Sample_x', 'cbioHGVSg_y', 'Mut in Sample_y'], axis=1
+    ).drop_duplicates(keep='first')      # oncodb部分热点突变c.不同p.相同，合并后引入重复行，及时去重
+    # merge_df.to_csv('test.txt', sep='\t', index=False)
+    # exit()
     # 原癌抑癌基因数据库，用gene name匹配
     logging.info('公开数据库注释信息整理 - 匹配原癌抑癌基因数据库')
     osgene_df = pd.read_table(args.osgene)
