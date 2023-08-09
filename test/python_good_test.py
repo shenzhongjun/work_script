@@ -30,7 +30,7 @@ class Fruit(object):
 
     x = 'I am big, have a bear please.'
 
-    @property  # 调用类的属性需要先实例化，如果不写@big.setter，则此属性是只读的。返回值依赖外部变量，才能被调用。
+    @property  # ???调用类的属性需要先实例化，如果不写@big.setter，则此属性是只读的。返回值依赖外部变量，才能被调用。???
     def big(self):
         return self.x
 

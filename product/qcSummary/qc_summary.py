@@ -220,9 +220,9 @@ class Sample(object):
             else:
                 return True
         else:
-            tissue_wes = (self.product == 'Ncet' or self.product == 'Ncec') and self.deepth <= 300 and self.type == 'wes'
+            solid_wes = (self.product == 'Ncet' or self.product == 'Ncec') and self.deepth <= 300 and self.type == 'wes'
             other_wes = (self.product != 'Ncet' and self.product != 'Ncec') and self.deepth <= 450 and self.type == 'wes'
-            if (tissue_wes or other_wes or
+            if (solid_wes or other_wes or
                     (int(self.deepth) <= 800 and (self.type in ['large_panel', 'small_panel'] or
                                                   (self.type == 'other' and self.chip in ['NVT', 'NCDT', 'NMM26', 'NCP1']))) or
                     (int(self.deepth) <= 200 and self.chip == 'NHLA')):

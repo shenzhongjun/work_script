@@ -451,8 +451,6 @@ if __name__ == "__main__":
     merge_df = merge_df.drop(
         ['cbioHGVSg_x', 'Mut in Sample_x', 'cbioHGVSg_y', 'Mut in Sample_y'], axis=1
     ).drop_duplicates(keep='first')      # oncodb部分热点突变c.不同p.相同，合并后引入重复行，及时去重
-    # merge_df.to_csv('test.txt', sep='\t', index=False)
-    # exit()
     # 原癌抑癌基因数据库，用gene name匹配
     logging.info('公开数据库注释信息整理 - 匹配原癌抑癌基因数据库')
     osgene_df = pd.read_table(args.osgene)
