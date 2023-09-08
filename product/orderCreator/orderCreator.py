@@ -196,7 +196,7 @@ class Order(object):
     def trim_packages(self):
         """去除单细胞等生产流程没有的产品组合代码"""
         packages = {product['package_code'] for product in self.products}
-        trim_list = ['NBESR', 'QPK', 'S0301', 'NHC', 'NRS0301', 'ScRNAseq', 'ScTCRseq']  # 'Si-D7', 'Si-D14', 'Si-D21', 'Si-D28'
+        trim_list = ['NBESR', 'QPK', 'S0301', 'NHC', 'NRS0301', 'ScRNAseq', 'ScTCRseq', 'SR01', 'SH01']  # 'Si-D7', 'Si-D14', 'Si-D21', 'Si-D28'
         return [package for package in packages if package not in trim_list]
 
     def trim_products(self):

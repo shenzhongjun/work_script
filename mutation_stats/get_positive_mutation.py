@@ -222,7 +222,7 @@ def write_txt(merged_df, out, mrd_product):
         w.write(header + '\n')
     header2 = re.sub('总深度_.+?\t', '总深度\t', '\t'.join(merged_df.columns.tolist())). \
         replace('突变深度_x', '突变深度').replace('突变深度_y', '突变深度'). \
-        replace('突变率_x', '突变率').replace('突变率_y', '突变率'). \
+        replace('突变率(%)_x', '突变率(%)').replace('突变率(%)_y', '突变率(%)'). \
         replace('是否通过过滤_x', '是否通过过滤').replace('是否通过过滤_y', '是否通过过滤')
     w.write(header2 + '\n')
     for line in merged_df.values.tolist():

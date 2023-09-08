@@ -4,6 +4,7 @@
 """
 Vardict Vcf文件筛选白名单热点突变，兼容特殊变异检测；支持室间质评降低阈值检测。
 v0.3更新：普通(ordinary)白名单十分可靠的也保留。
+v0.3.1更新：超级白名单点突变应用碱基质量>=35，以排除包含低碱基质量的假阳
 """
 
 __author__ = "ZhouYiJie"
@@ -84,26 +85,26 @@ class HotSpotVcf(Vcf):
             # 特殊变异检测须进行更严格的过滤，尤其是STR导致的fs过滤，否则报出假阳过多
             if not sjzp:
                 # 超级白名单特殊检测阈值
-                special_filter = (0.004 <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 30 and
+                special_filter = (0.004 <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 35 and
                                   not long_indel and
                                   not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
                 # 超级白名单阈值
                 if gene == 'BRCA1' or gene == 'BRCA2':
                     base_filter = special_filter    # 如果基因是BRCA1或BRCA2，因超级白名单有大量疑似未经验证位点，故提高阈值
                 else:
-                    base_filter = vaf >= 0.004 and reads >= 4
+                    base_filter = vaf >= 0.004 and reads >= 4 and bq >= 35      # 超级白名单点突变有类似3个38带一个12的，因此也需bq过滤
                 # 普通白名单特殊检测阈值
-                ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
+                ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 35 and normal_reads == 0
                                       and not long_indel
                                       and not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
                 # 普通白名单阈值
-                ord_base_filter = var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
+                ord_base_filter = var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 35 and normal_reads == 0
             else:
                 base_filter = vaf >= 0.001 and reads >= 2
-                ord_base_filter = var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 30 and normal_reads == 0
-                special_filter = (0.001 <= vaf <= 0.9 and reads >= 2 and normal_reads == 0 and bq >= 30 and
+                ord_base_filter = var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 35 and normal_reads == 0
+                special_filter = (0.001 <= vaf <= 0.9 and reads >= 2 and normal_reads == 0 and bq >= 35 and
                                   not ((msirep >= 3 and vaf <= 0.01) or (msirep >= 5 and vaf <= 0.05)))
-                ord_special_filter = (var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 30 and normal_reads == 0
+                ord_special_filter = (var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 35 and normal_reads == 0
                                          and not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
 
 

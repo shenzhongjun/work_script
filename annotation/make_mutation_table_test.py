@@ -279,9 +279,9 @@ def trim_interpro(x):
 
 
 def get_max_af(x):
-    afs = ["AF", "EAS_AF", "AFR_AF", "AMR_AF", "EUR_AF", "SAS_AF", "gnomAD_exomes_controls_AF",
-           "gnomAD_exomes_controls_EAS_AF", "gnomAD_exomes_controls_AFR_AF", "gnomAD_exomes_controls_AMR_AF",
-           "gnomAD_exomes_controls_NFE_AF", "gnomAD_exomes_controls_SAS_AF",
+    afs = ["AF", "EAS_AF", "AFR_AF", "AMR_AF", "EUR_AF", "SAS_AF", "gnomADe_AF",
+           "gnomADe_EAS_AF", "gnomADe_AFR_AF", "gnomADe_AMR_AF",
+           "gnomADe_NFE_AF", "gnomADe_SAS_AF",
            "WBBC_AF", "WBBC_North_AF", "WBBC_Central_AF", "WBBC_South_AF", "WBBC_Lingnan_AF"]
     values = []
     for i in afs:

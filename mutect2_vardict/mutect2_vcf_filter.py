@@ -44,15 +44,15 @@ def tag_vcf(x, t, n):
 
     ref_reads, reads = [int(a) for a in x[t].split(':')[1].split(',')]
     total_reads = int(x[t].split(':')[3])
-    vaf = reads / total_reads
+    vaf = 0 if total_reads == 0 else reads / total_reads        # 防止总深度为0的情况
     mbq = float(re.search("MBQ=(.*?);", x['info']).group(1).split(',')[0]) if 'MBQ=' in x['info'] else 30
     mpos = int(re.search("MPOS=(.*?);", x['info']).group(1).split(',')[0]) if 'MPOS=' in x['info'] else 30
     msirep = int(re.search("RPA=(.*?);", x['info']).group(1).split(',')[0]) if 'RPA=' in x['info'] else 0
 
     noraml_ref_reads, normal_reads = [int(a) for a in x[n].split(':')[1].split(',')]
     normal_total_reads = int(x[n].split(':')[3])
-    normal_total_reads = 1 if normal_total_reads == 0 else normal_total_reads
-    normal_vaf = normal_reads / normal_total_reads
+    # normal_total_reads = 1 if normal_total_reads == 0 else normal_total_reads
+    normal_vaf = 0 if normal_total_reads == 0 else normal_reads / normal_total_reads        # 防止总深度为0的情况
     high_normal_vaf = (normal_vaf >= 0.02)
     low_vaf_ratio = (vaf > 0 and normal_vaf > 0 and float(vaf / normal_vaf) < 4)
 
