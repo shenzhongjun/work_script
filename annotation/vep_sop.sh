@@ -36,7 +36,7 @@ fields_str=$fields_str",SpliceAI_pred,ada_score,rf_score,COSMIC,COSMIC_LEGACY_ID
 sed -n '1,10000p' ${sample}.anno_vep.txt > ${sample}.anno_vep.tmp.txt
 #cp ${sample}.anno_vep.txt ${sample}.anno_vep.tmp.txt
 
-python make_mutation_table_test.py \
+/home/zhouyj/anaconda3/envs/python3.9/bin/python make_mutation_table_test.py \
 	--anno ${sample}.anno_vep.tmp.txt \
 	--vcf ${sample}.merged.vcf.gz \
 	--out ${sample}.anno_vep.merged
