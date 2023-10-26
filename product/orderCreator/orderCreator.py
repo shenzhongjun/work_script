@@ -161,18 +161,12 @@ class OrderCreator(object):
         library_df = self.appendix_data['文库质检反馈']
         msl_row = msl_df.loc[msl_df['订单号'] == order_num]
         if not msl_row.empty:
-            # if msl_row.shape[0] > 1:
-            #     append_dict['title'].add('(该订单在MSL反馈表中有两条以上记录，请核对！)')
             append_dict = addinfo(msl_row, append_dict)
         extract_row = extract_df.loc[extract_df['订单号'] == order_num]
         if not extract_row.empty:
-            # if extract_row.shape[0] > 1:
-            #     append_dict['title'].add('(该订单在提取质检反馈表中有两条以上记录，请核对！)')
             append_dict = addinfo(extract_row, append_dict)
         library_row = library_df.loc[library_df['订单编号'] == order_num]
         if not library_row.empty:
-            # if library_row.shape[0] > 1:
-            #     append_dict['title'].add('(该订单在文库质检反馈表中有两条以上记录，请核对！)')
             append_dict = addinfo2(library_row, append_dict)
         return {'title': '_'.join(sorted(append_dict['title'])),
                 'info': '，'.join(sorted(append_dict['info']))}
@@ -196,13 +190,13 @@ class Order(object):
     def trim_packages(self):
         """去除单细胞等生产流程没有的产品组合代码"""
         packages = {product['package_code'] for product in self.products}
-        trim_list = ['NBESR', 'QPK', 'S0301', 'NHC', 'NRS0301', 'ScRNAseq', 'ScTCRseq', 'SR01', 'SH01']  # 'Si-D7', 'Si-D14', 'Si-D21', 'Si-D28'
+        trim_list = ['NBESR', 'QPK', 'S0301', 'NHC', 'NRS0301', 'ScRNAseq', 'ScRNAseq-V2', 'ScTCRseq', 'SR01', 'SH01']  # 'Si-D7', 'Si-D14', 'Si-D21', 'Si-D28'
         return [package for package in packages if package not in trim_list]
 
     def trim_products(self):
         """去除不体现在任务标题里的产品代码"""
         trim_list = ['WARV7', 'WHE', 'WMGMT', 'NCP980m1', 'NCP980m2', 'NCP980m3', 'NBESR', 'QPK', 'S0301', 'S0301J', 'NRS0301', 'NRS0301J',
-                     'NCP116m1', 'NCP116m2', 'NCP116m3', 'Ncecm1', 'Ncecm2', 'Ncecm3', 'ScRNAseq', 'ScTCRseq',
+                     'NCP116m1', 'NCP116m2', 'NCP116m3', 'Ncecm1', 'Ncecm2', 'Ncecm3', 'ScRNAseq', 'ScRNAseq-V2', 'ScTCRseq',
                      'MRD01', 'MRD02', 'MRD03', 'MRD04', 'MRD05', 'MRD06', 'MRD07', 'MRD08', 'I0301']
         new_products = []
         for product in self.product_in_package:
@@ -375,7 +369,7 @@ def get_batch_data(batchs):
     codes = '/mnt/share05/data/product_raw_data/rawdata/script/cancer_code.list'
     for b in batchs:
         subprocess.call(
-            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq' >> batch_tmp.txt",
+            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq|ScRNAseq-V2|SR01|ScTCRseq|SH01' >> batch_tmp.txt",
             shell=True)
     data = subprocess.getoutput(f"awk -F '\t' '{{OFS=\",\"}}{{$1=$1;gsub(/,/, \"，\", $12); print $3,$15,$4,$5,$2,$7,$12}}' batch_tmp.txt | "
                                 f"sort -k 2,2 -k 1n,1 -t,")
@@ -426,7 +420,7 @@ if __name__ == "__main__":
                                 c.creat_order()
                     file_size = current_size
                 time.sleep(60 * 30)
-                # time.sleep(5)   # 测试用！！！
+                # time.sleep(5)   # 测试用
             except BaseException as e:
                 dingd = DingDingWebHook()
                 dingd.send_text(f'报错：{e}.\n自动创建项目程序终止，请及时重启程序！', '18810681046')

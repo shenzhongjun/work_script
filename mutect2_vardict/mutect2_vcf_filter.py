@@ -79,8 +79,8 @@ def tag_vcf(x, t, n):
         if 'PASS' in filter_tags:
             filter_tags.remove('PASS')
 
-    # 严格过滤STR
-    if (msirep >= 3 and (vaf <= 0.05 or normal_reads >= 1)) or (msirep >= 5 and (vaf <= 0.1 or normal_reads >= 1 or normal_total_reads <= 100)):
+    # 严格过滤STR。2023年9月26日：最低频率改为10%，总reads数100
+    if msirep >= 3 and (vaf <= 0.1 or normal_reads >= 1 or total_reads <= 100 or normal_total_reads <= 100):
         filter_tags.add('short_tandem_repeat')
         if 'PASS' in filter_tags:
             filter_tags.remove('PASS')

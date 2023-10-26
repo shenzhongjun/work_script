@@ -72,8 +72,12 @@ class HotSpotVcf(Vcf):
             reads = int(re.search('VD=(.*?);', x['info']).group(1))
             bq = float(x[self.tumor].split(':')[10])                # base quality
             normal_reads = int(x[self.normal].split(':')[2])
+            normal_total_reads = int(x[self.normal].split(':')[1])
+            normal_vaf = normal_reads / normal_total_reads if normal_total_reads > 0 else 0
             msirep = float(re.search('MSI=(.*?);', x['info']).group(1))
             long_indel = len(x['ref']) > 50 or len(x['alt']) > 50
+            vaf_ratio = float(vaf / normal_vaf) > 2 if normal_vaf > 0 else True
+
             # 获得变异注释信息
             gene = re.search('Gene.refGene=(.*?);', x['info']).group(1)
             function = re.search('Func.refGene=(.*?);', x['info']).group(1)
@@ -85,28 +89,29 @@ class HotSpotVcf(Vcf):
             # 特殊变异检测须进行更严格的过滤，尤其是STR导致的fs过滤，否则报出假阳过多
             if not sjzp:
                 # 超级白名单特殊检测阈值
-                special_filter = (0.004 <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 35 and
+                special_filter = (0.004 <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 30 and
                                   not long_indel and
-                                  not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
+                                  not (msirep >= 3 and vaf <= 0.1))
                 # 超级白名单阈值
                 if gene == 'BRCA1' or gene == 'BRCA2':
                     base_filter = special_filter    # 如果基因是BRCA1或BRCA2，因超级白名单有大量疑似未经验证位点，故提高阈值
                 else:
-                    base_filter = vaf >= 0.004 and reads >= 4 and bq >= 35      # 超级白名单点突变有类似3个38带一个12的，因此也需bq过滤
+                    # 超级白名单点突变有类似3个38带一个12的，因此也需bq过滤
+                    # 有germline_risk假阳性出现，应加入vaf_ratio
+                    base_filter = vaf >= 0.004 and reads >= 4 and bq >= 30 and vaf_ratio
                 # 普通白名单特殊检测阈值
-                ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 35 and normal_reads == 0
+                ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
                                       and not long_indel
-                                      and not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
+                                      and not (msirep >= 3 and vaf <= 0.1))
                 # 普通白名单阈值
-                ord_base_filter = var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 35 and normal_reads == 0
+                ord_base_filter = var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
             else:
-                base_filter = vaf >= 0.001 and reads >= 2
-                ord_base_filter = var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 35 and normal_reads == 0
-                special_filter = (0.001 <= vaf <= 0.9 and reads >= 2 and normal_reads == 0 and bq >= 35 and
-                                  not ((msirep >= 3 and vaf <= 0.01) or (msirep >= 5 and vaf <= 0.05)))
-                ord_special_filter = (var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 35 and normal_reads == 0
-                                         and not ((msirep >= 3 and vaf <= 0.05) or (msirep >= 5 and vaf <= 0.1)))
-
+                base_filter = vaf >= 0.001 and reads >= 2 and bq >= 30 and vaf_ratio
+                ord_base_filter = var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 30 and normal_reads == 0
+                special_filter = (0.001 <= vaf <= 0.9 and reads >= 2 and normal_reads == 0 and bq >= 30 and
+                                  not (msirep >= 3 and vaf <= 0.1))
+                ord_special_filter = (var_type == 'SNV' and vaf >= 0.005 and reads >= 6 and bq >= 30 and normal_reads == 0
+                                         and not (msirep >= 3 and vaf <= 0.1))
 
             # i.split(":")[4][2:]是蛋白质改变（去掉前面的p.与白名单进行匹配）
             mut_set = {f'{i.split(":")[4][2:]}' for i in aa_change.split(',') if 'p.' in i}
@@ -138,7 +143,7 @@ class HotSpotVcf(Vcf):
                         #     filter_tags.remove('germline_risk')
                         if 'HotSpot' not in x['info']:
                             x['info'] = f"{x['info']};HotSpot_Special"
-                # 进行非特殊变异白名单匹配
+                # 进行非特殊检测白名单匹配
                 elif getattr(row, '基因') == gene and getattr(row, '变异') in mut_set:
                     if getattr(row, '是否超级白名单') == '是' and base_filter:
                         filter_tags.add('PASS')

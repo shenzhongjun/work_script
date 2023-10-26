@@ -136,7 +136,7 @@ class QcSummary(object):
             if not sample.passed:
                 sum_dict[sample_type]['nopass'] += 1
                 sum_dict['汇总']['nopass'] += 1
-                nopass_list.append([sample.order, sample.name, sample.chip, sample.unpass_reason, sample.unpass_info])
+                nopass_list.append([sample.order, sample.name, sample.product, sample.chip, sample.unpass_reason, sample.unpass_info])
 
         for i in sum_dict:
             if sum_dict[i]["all_sample"] > 0 and sum_dict[i]["nopass"] > 0:
@@ -151,7 +151,7 @@ class QcSummary(object):
         print(f'质控失败率统计：\n{sum_df}')
 
         sum_df2 = pd.DataFrame.from_records(
-            nopass_list, columns=['订单编号', '样本号', '芯片类型', '不合格原因', '不合格明细'])
+            nopass_list, columns=['订单编号', '样本号', '项目类型', '芯片类型', '不合格原因', '不合格明细'])
         sum_df2.to_excel(sum_writer, sheet_name="质控不合格明细", index=False)
         sum_writer.save()
         print(f'质控不合格明细：\n{sum_df2}')
@@ -221,7 +221,7 @@ class Sample(object):
                 return True
         else:
             solid_wes = (self.product == 'Ncet' or self.product == 'Ncec') and self.deepth <= 300 and self.type == 'wes'
-            other_wes = (self.product != 'Ncet' and self.product != 'Ncec') and self.deepth <= 450 and self.type == 'wes'
+            other_wes = (self.product != 'Ncet' and self.product != 'Ncec') and self.deepth <= 400 and self.type == 'wes'
             if (solid_wes or other_wes or
                     (int(self.deepth) <= 800 and (self.type in ['large_panel', 'small_panel'] or
                                                   (self.type == 'other' and self.chip in ['NVT', 'NCDT', 'NMM26', 'NCP1']))) or

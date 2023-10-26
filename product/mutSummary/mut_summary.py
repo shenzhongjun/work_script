@@ -138,17 +138,27 @@ class VafSummary(Summary):
 
     def sum(self):
         for adir in self.dirs:
-            for i in os.listdir(f'{self.sumdir}/{adir}'):
-                merge_file = f'{self.sumdir}/{adir}/{i}'
+            for i in os.listdir(f'{adir}'):
+                merge_file = f'{adir}/{i}'
                 ctime = datetime.fromtimestamp(os.stat(merge_file).st_ctime)
-                if i.endswith('_Somatic.xlsx') and self.start_date < ctime < self.end_date:
-                    df = pd.read_excel(merge_file, usecols='A, H, J, L, M, R:T, W, X, Z:AH, CC')
-                    df = df.drop_duplicates(subset='突变编号', keep='first', ignore_index=True)
-                    df = df[(~df['结论'].isin(['遗传性突变'])) &
-                            (df['突变可靠性\n'] == '相对可靠') &
-                            (~df['突变类型'].isin(['同义突变', '非编码区突变', '剪切位点附近的突变']))]
+                if self.start_date < ctime < self.end_date:
+                    if i.endswith('_Somatic.xlsx'):
+                        df = pd.read_excel(merge_file, usecols='A, H, J, L, M, R:T, W, X, Z:AH, CC')
+                        df = df.drop_duplicates(subset='突变编号', keep='first', ignore_index=True)
+                        df = df[(~df['结论'].isin(['遗传性突变'])) &
+                                (df['突变可靠性\n'] == '相对可靠') &
+                                (~df['突变类型'].isin(['同义突变', '非编码区突变', '剪切位点附近的突变']))]
+                    elif i.endswith('merge.with_vcf_tag.txt'):      # pipline2.0
+                        df = pd.read_table(merge_file, low_memory=False)
+                        df = df.drop_duplicates(subset='突变编号', keep='first', ignore_index=True)
+                        df = df[(~df['结论'].isin(['遗传性突变'])) &
+                                (df['突变可靠性'] == '相对可靠') &
+                                (~df['突变类型'].isin(['同义突变', '非编码区突变', '剪切位点附近的突变']))]
+                    else:
+                        continue
                     self.mutdf = self.mutdf.append(df, ignore_index=True)
                     self.samples += 1
+        print(self.mutdf)
         mut_count_df = pd.DataFrame({'突变编号': self.mutdf['突变编号'].value_counts().index,
                                      '该突变检出的个数': self.mutdf['突变编号'].value_counts()})
         mut_count_df = mut_count_df[mut_count_df['该突变检出的个数'] >= 3]  # 只统计样本数大于2个的变异
