@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/mnt/share01/tools/miniconda/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -65,7 +65,7 @@ class OrderCreator(object):
         self.recordfile = f'{self.path}/下机任务创建.txt'
         # self.recordfile = f'{self.path}/下机任务创建.test.txt'  # 测试用
         self.real_batchs = sorted({line.split(',')[0] for line in self.batch_data})
-        # self.orders = {'DDN22009043'}   # 测试用
+        # self.orders = {'DDN23026194'}   # 测试用DDN23026601
         self.orders = self.get_order()
         self.df = pd.DataFrame(
             columns=['批次', '订单', '任务名', '样本名', '产品代码', '芯片类型', '订单备注', '创建日期'])
@@ -226,6 +226,7 @@ class Order(object):
             self.packages.remove('NBDI')  # 把NBDI免疫组库从组合里删除以免重复创建
             self.products.remove(self.contain_NBDI()[0])  # 把NBDI免疫组库从产品里删除，否则免疫组库样本会出现在其它组合里
         for package in self.packages:
+            print(package)
             sample_in_package = self.add_sample(package, 'normal')
             self.tasks.append(self.create_info(package, sample_in_package, 'normal'))
 
@@ -369,7 +370,7 @@ def get_batch_data(batchs):
     codes = '/mnt/share05/data/product_raw_data/rawdata/script/cancer_code.list'
     for b in batchs:
         subprocess.call(
-            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq|ScRNAseq-V2|SR01|ScTCRseq|SH01' >> batch_tmp.txt",
+            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq|ScRNAseq-V2|SR01|ScTCRseq|SH01|S2H01' >> batch_tmp.txt",
             shell=True)
     data = subprocess.getoutput(f"awk -F '\t' '{{OFS=\",\"}}{{$1=$1;gsub(/,/, \"，\", $12); print $3,$15,$4,$5,$2,$7,$12}}' batch_tmp.txt | "
                                 f"sort -k 2,2 -k 1n,1 -t,")

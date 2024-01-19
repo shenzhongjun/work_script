@@ -20,14 +20,16 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 
-pd.reset_option('display.float_format')
+# pd.reset_option('display.float_format')     # 不知道作用
+# pd.set_option('max_columns', 15)
+pd.options.display.max_columns = 15     # 新版pandas设置方法
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='批量从vcf格式或annovar注释结果中提取阳性位点Call变异情况')
     parser.add_argument('--soft', '-f',
                         help='vcf文件来源，默认merged（vardict+mutect2），从sentieon、mutect2、vardict、merged中选择',
-                        choices=['merged', 'vardict', 'sentieon', 'mutect2'], default='merged')
+                        choices=['merged', 'vardict', 'sentieon', 'mutect2', 'haplotype'], default='merged')
     parser.add_argument('--glob_path', '-g', help='vcf文件路径，支持"*"')
     parser.add_argument('--sample_list', '-s', help='vcf文件路径，以sample_list.txt提供，第一列为sample、第二列为path')
     parser.add_argument('--positive_list', '-p',
@@ -79,7 +81,7 @@ def get_umi_library_df(file_path, library_n):
     return df
 
 
-def get_vcf_library_df(file_path, library_n, positive_sites, soft='vardict', check_tri=False, mrd=False, mrd_producrt=False):
+def get_vcf_library_df(file_path, library_n, positive_sites, soft, check_tri=False, mrd=False, mrd_producrt=False):
     """
     Sentieon VCF格式
     ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
@@ -104,6 +106,9 @@ def get_vcf_library_df(file_path, library_n, positive_sites, soft='vardict', che
     Mutect2 VCF格式
     GT:AD:AF:DP:F1R2:F2R1:FAD:SB
     0/1:275,14:0.093:289:36,23:82,29:173,86:128,147,7,7
+
+    HaplotypeCaller VCF格式
+    GT:AD:DP:GQ:PL  0/1:62,10:72:99:187,0,1772
     """
     tmp2 = StringIO()
     if 'gz' in file_path:
@@ -176,6 +181,10 @@ def get_vcf_library_df(file_path, library_n, positive_sites, soft='vardict', che
         result_df['AltDepth'] = df[library_n].str.split(':', expand=True)[1].str.split(',', expand=True)[1].astype(np.int64)
         result_df['TotalDepth'] = df[library_n].str.split(':', expand=True)[3].astype(np.int64)
         result_df['MutFreq'] = result_df.apply(get_mutfreq, axis=1)
+    elif soft == 'haplotype':
+        result_df['AltDepth'] = df[library_n].str.split(':', expand=True)[1].str.split(',', expand=True)[1].astype(np.int64)
+        result_df['TotalDepth'] = df[library_n].str.split(':', expand=True)[2].astype(np.int64)
+        result_df['MutFreq'] = result_df.apply(get_mutfreq, axis=1)
     else:
         pass
 
@@ -231,11 +240,10 @@ def write_txt(merged_df, out, mrd_product):
 
 
 if __name__ == "__main__":
-    pd.set_option('max_columns', 15)
     argv = get_args()
     # positive_df header参考：chr	start	end	ref	alt	gene
     positive_df = pd.read_table(argv.positive_list)
-    positive_df['Position'] = positive_df[positive_df.columns.values[0]].str.cat(
+    positive_df['Position'] = positive_df[positive_df.columns.values[0]].astype(str).str.cat(
         positive_df[positive_df.columns.values[1]].astype('str'), sep='_')
     if argv.glob_path:
         merged_df = merge_df(positive_df, argv.annoed, argv.mrd, argv.mrd_product, argv.soft, glob_path=argv.glob_path)

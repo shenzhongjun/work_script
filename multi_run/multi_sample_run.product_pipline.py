@@ -3,6 +3,14 @@
 
 """
 批量刷出多个订单的生产流程目录并运行生产流程run.sh
+sample_list.txt示例如下：
+tumor_id	order_id	sample_type	sample_id	library_id
+CAPT1	DDN23024022	T	CAPT1	DYDFZ-2938-502
+CAPT1	DDN23024022	N	CAPT2DZ	DYDFZ-2938-506
+CAPT3	DDN23024022	T	CAPT3	DYDFZ-2938-503
+CAPT3	DDN23024022	N	CAPT4DZ	DYDFZ-2938-505
+CAPT5	DDN23024022	T	CAPT5	DYDFZ-2938-504
+CAPT5	DDN23024022	N	CAPT6DZ	DYDFZ-2938-507
 """
 
 __author__ = "ZhouYiJie"
@@ -17,12 +25,15 @@ import argparse
 import urllib.parse
 import urllib.request
 import json
+import subprocess
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='批量刷出多个订单的目录并运行生产流程run.sh')
     parser.add_argument('--sample_list', '-s', help='样本列表', required=True)
     parser.add_argument('--project_id', '-p', help='产品类型，默认Ncet', default='Ncet')
     parser.add_argument('--chip_id', '-c', help='芯片类型，默认IDT', default='IDT')
+    parser.add_argument('--qsub', '-q', help='刷出sjm脚本后直接投递', action='store_true')
     return parser.parse_args()
 
 
@@ -43,7 +54,7 @@ if __name__ == "__main__":
         f.readline()
         for line in f:
             tumor_id, order_id, sample_type, sample_id, library_id = line.strip().split('\t')
-            fastqa, fastqb = subprocess.getoutput(f'ff {library_id}').strip().split('\n')
+            fastqa, fastqb = subprocess.getoutput(f'ff {library_id} | grep -v html').strip().split('\n')
             request = urllib.request.Request(f"https://lims-api.chigene.cn/api/v1/tumor/orders/{order_id}",
                                              headers={"token": "zhiyindongfang_zhongliu_2020"})
             response = urllib.request.urlopen(request)
@@ -81,3 +92,5 @@ if __name__ == "__main__":
     --project_dir $PWD \\
     --test
 """)
+        if argv.qsub:
+            subprocess.call(f'cd {tumor_id} && sh run.sh && sjm *sjm && cd -', shell=True)

@@ -18,6 +18,9 @@ import argparse
 import os
 import re
 import sys
+import json
+import urllib.parse
+import urllib.request
 from datetime import datetime
 
 import pandas as pd
@@ -71,6 +74,19 @@ def format_date(year, month, day):
     return start_date, end_date
 
 
+def check_date(order_num, ctime, start_date, end_date):
+    if start_date < ctime < end_date:       # 先判断文件日期再判断订单日期，否则会因为请求过多报错！
+        request = urllib.request.Request(f"https://lims-api.chigene.cn/api/v1/tumor/orders/{order_num}",
+                                         headers={"token": "zhiyindongfang_zhongliu_2020"})
+        response = urllib.request.urlopen(request)
+        order_date = json.loads(response.read().decode('utf-8'))['data']['service_confirm_date']
+        order_date = datetime.strptime(order_date, "%Y-%m-%d %H:%M:%S")
+        # print(order_date, ctime, start_date, end_date)
+        return True if start_date < order_date < end_date else False
+    else:
+        return False
+
+
 class QcSummary(object):
     def __init__(self, args, date):
         self.chip_type = {
@@ -97,15 +113,17 @@ class QcSummary(object):
                 for i in os.listdir(f'{self.sumdir}/{adir}'):
                     qc_file = f'{self.sumdir}/{adir}/{i}'
                     ctime = datetime.fromtimestamp(os.stat(qc_file).st_ctime)
-                    if i.endswith('rmdup_QC.xlsx') and self.start_date < ctime < self.end_date:
+                    order_num = re.search('(DDN.*?)_', adir).group(1)
+                    if i.endswith('rmdup_QC.xlsx') and check_date(order_num, ctime, self.start_date, self.end_date):
                         try:
                             df = pd.read_excel(qc_file)
                         except:
                             df = pd.read_table(qc_file)     # 有可能是0.9流程生成的文本文件但是后缀为xlsx
-                        self.sampledf = self.sampledf.append(df, ignore_index=True)
+                        # self.sampledf = self.sampledf.append(df, ignore_index=True)   # pandas2.0弃用append
+                        self.sampledf = pd.concat([self.sampledf, df], ignore_index=True)
                         for l in range(0, 2):
                             sample = Sample(df.iloc[l])
-                            sample.order = re.search('(DDN.*?)_', adir).group(1)
+                            sample.order = order_num
                             sample.chip_type = self.chip_type
                             self.samples.add(sample)
         self.sampledf = self.sampledf.drop_duplicates(subset='样本编号', keep='first', ignore_index=True)
@@ -153,7 +171,7 @@ class QcSummary(object):
         sum_df2 = pd.DataFrame.from_records(
             nopass_list, columns=['订单编号', '样本号', '项目类型', '芯片类型', '不合格原因', '不合格明细'])
         sum_df2.to_excel(sum_writer, sheet_name="质控不合格明细", index=False)
-        sum_writer.save()
+        sum_writer.close()
         print(f'质控不合格明细：\n{sum_df2}')
 
 
