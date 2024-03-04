@@ -33,6 +33,7 @@ def get_args():
     parser.add_argument('--sample_list', '-s', help='样本列表', required=True)
     parser.add_argument('--project_id', '-p', help='产品类型，默认Ncet', default='Ncet')
     parser.add_argument('--chip_id', '-c', help='芯片类型，默认IDT', default='IDT')
+    parser.add_argument('--owner', '-o', help='病人编号，不给的话根据订单号抓取，较为耗时')
     parser.add_argument('--qsub', '-q', help='刷出sjm脚本后直接投递', action='store_true')
     return parser.parse_args()
 
@@ -48,6 +49,7 @@ if __name__ == "__main__":
     chip_id = argv.chip_id                     # 'IDT'
     postfix = 'b8213'
     info = '新下机'
+    own_id = argv.owner if argv.owner else None
     sample_dict = {}
 
     with open(sample_list) as f:
@@ -55,10 +57,11 @@ if __name__ == "__main__":
         for line in f:
             tumor_id, order_id, sample_type, sample_id, library_id = line.strip().split('\t')
             fastqa, fastqb = subprocess.getoutput(f'ff {library_id} | grep -v html').strip().split('\n')
-            request = urllib.request.Request(f"https://lims-api.chigene.cn/api/v1/tumor/orders/{order_id}",
-                                             headers={"token": "zhiyindongfang_zhongliu_2020"})
-            response = urllib.request.urlopen(request)
-            own_id = json.loads(response.read().decode('utf-8'))["data"]['family_member_code']
+            if not own_id:
+                request = urllib.request.Request(f"https://lims-api.chigene.cn/api/v1/tumor/orders/{order_id}",
+                                                 headers={"token": "zhiyindongfang_zhongliu_2020"})
+                response = urllib.request.urlopen(request)
+                own_id = json.loads(response.read().decode('utf-8'))["data"]['family_member_code']
             # 研发项目tumor总是唯一的，以此为key
             if tumor_id not in sample_dict:
                 sample_dict[tumor_id] = {}

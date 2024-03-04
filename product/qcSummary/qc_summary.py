@@ -34,7 +34,7 @@ def get_args():
                         default=f'{os.path.split(os.path.realpath(sys.argv[0]))[0]}/log')
     parser.add_argument('--day', '-d', help='要统计的日期，支持1-31格式，默认为1-31', default='1-31')
     parser.add_argument('--month', '-m', help='要统计的月份，支持1-3格式，必需参数', required=True)
-    parser.add_argument('--year', '-y', help='要统计的年份，支持2020-2022格式，默认为2023', default='2023')
+    parser.add_argument('--year', '-y', help='要统计的年份，支持2020-2022格式，默认为2024', default='2024')
     return parser.parse_args()
 
 

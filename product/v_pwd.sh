@@ -1,0 +1,1 @@
+/mnt/share01/tools/bin/perl /mnt/share02/lixx/01.script/vjob|grep `realpath .`
