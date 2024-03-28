@@ -9,7 +9,7 @@ fq1=/mnt/share05/clinical_project/projects/solid_tumor/DDN21022850_PN2110220005/
 fq2=/mnt/share05/clinical_project/projects/solid_tumor/DDN21022850_PN2110220005/DNA_NCPLt_NCPLt/clean_data/AEI144/AEI144.clean_2.fq.gz
 out=`pwd`
 #/mnt/share01/tools/miniconda/envs/cnvkit/bin/python \
-#    /mnt/share02/xuefei/dna/genefusion/test/genefuse/scripts/make_fusion_genes.py \
+#    /mnt/share02/xuefei/dna/genefusion/other/genefuse/scripts/make_fusion_genes.py \
 #    $out/gene_list.txt \
 #    -r /mnt/share02/xuefei/dna/genefusion/db/hg19/refFlat.txt \
 #    -o $out/my_fusion.csv && \

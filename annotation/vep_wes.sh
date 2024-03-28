@@ -28,7 +28,7 @@ fields_str=$fields_str",SpliceAI_pred,ada_score,rf_score,COSMIC,COSMIC_LEGACY_ID
 	--custom $db/WBBC/hg19/WBBC.GRCh37.vcf.gz,WBBC,vcf,exact,,AF,North_AF,Central_AF,South_AF,Lingnan_AF
 
 # 结果整理
-#sed -n '1,10000p' AIJ481.merged.anno_vep.test.txt > AIJ481.merged.anno_vep.test.sub.txt
+#sed -n '1,10000p' AIJ481.merged.anno_vep.other.txt > AIJ481.merged.anno_vep.other.sub.txt
 python handle_vep_result.v0.2.py \
 	--anno AIG138.anno_vep.txt \
 	--vcf /mnt/share05/clinical_project/projects/blood_tumor/test/xuefei_test/v2.0test/v2.0/snvindel/merge/AIG138/AIG138.merged.vcf.gz \

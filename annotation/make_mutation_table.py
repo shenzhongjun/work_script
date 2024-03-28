@@ -43,9 +43,9 @@ def get_args():
     # parser.add_argument('--uniprot', help='UniProt蛋白结构域数据库路径',
     #                     default=f'{db_path}/custom/UniProt/uniprot_for_OM1-20230103.xlsx')
     parser.add_argument('--oncodb', help='OncoKB和CKB合并后的突变致癌性数据库路径',
-                        default=f'{db_path}/custom/cbp_ckb_white.merge.20230720.txt')
+                        default=f'{db_path}/custom/cbp_ckb_white.merge.20240315.txt')
     parser.add_argument('--json', help='配置结果输出列名及内容的json文件',
-                        default=f'{os.path.dirname(os.path.realpath(__file__))}/make_mutation_table_test.json')
+                        default=f'{os.path.dirname(os.path.realpath(__file__))}/make_mutation_table.json')
     return parser.parse_args()
 
 
@@ -160,11 +160,10 @@ def pathogenicity_rating(x):
     SBP = Somatic Benign Supporting; SBS = Somatic Benign Strong; SBVS = Somatic Benign Very Strong
     经与医学商讨，对遗传突变关注其致癌性而非致病性，所以也应用本SOP评级
     """
-    # if x['突变来源'] != '胚系突变':
     evidence = []
     # 人群频率评分
     if float(x['max_af']) >= 0.05:
-        points = -8
+        points = -8  # -9 if x['突变来源'] == '胚系突变' else -8  # 2024年3月15日晓旭：胚系突变提高人群频率SBVS1分值
         evidence.append('SBVS1')
     elif 0.01 <= float(x['max_af']) < 0.05:
         points = -4

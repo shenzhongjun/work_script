@@ -46,10 +46,10 @@
 	--output_file AIJ481.merged.anno_vep.final.vcf \
 	--fork 8
 
-# test
+# other
 /home/zhouyj/anaconda3/envs/vep/bin/perl /home/zhouyj/anaconda3/envs/vep/bin/vep --input_file AIJ481.merged.vcf.gz --output_file AIJ481.merged.anno_vep.nsfp.txt --tab --fork 16 --dir_cache /mnt/share02/zhouyj/database/annotation --dir_plugins /home/zhouyj/anaconda3/envs/vep/Plugins --fasta /mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/J_hg19_reference/hg19_reference_with_NC.fasta --format vcf --cache --offline --merged --force_overwrite --show_ref_allele --plugin dbNSFP,/mnt/share02/zhouyj/database/annotation/dbNSFP/dbNSFP4.3a_grch37.gz,SIFT_score,SIFT_pred,Polyphen2_HDIV_score,Polyphen2_HDIV_pred,REVEL_score,MutationTaster_score,MutationTaster_pred,CADD_phred,FATHMM_score,FATHMM_pred --sift b --polyphen b --custom /mnt/share02/zhouyj/database/annotation/COSMICv97/hg19/CosmicCodingMuts.normal.vcf.gz,COSMIC_num,vcf,exact,,ID,LEGACY_ID,CDS,AA,CNT --pick
 
-# test-config
+# other-config
 /home/zhouyj/anaconda3/envs/vep/bin/perl /home/zhouyj/anaconda3/envs/vep/bin/vep \
 	--config /mnt/share02/zhouyj/database/annotation/plugin_custom.config.ini \
 	--input_file AIJ481.merged.vcf.gz \
@@ -61,7 +61,7 @@
 	--plugin dbscSNV,/mnt/share02/zhouyj/database/annotation/dbscSNV/dbscSNV1.1_GRCh37.txt.gz \
 	--custom /mnt/share02/zhouyj/database/annotation/COSMICv97/hg19/CosmicCodingMuts.normal.vcf.gz,COSMIC,vcf,exact,,LEGACY_ID,CNT
 
-# test-config-vcf
+# other-config-vcf
 /home/zhouyj/anaconda3/envs/vep/bin/perl /home/zhouyj/anaconda3/envs/vep/bin/vep \
 	--config /mnt/share02/zhouyj/database/annotation/plugin_custom.config.ini \
 	--input_file AIJ481.merged.vcf.gz \

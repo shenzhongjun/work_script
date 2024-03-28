@@ -27,7 +27,7 @@ fields_str=$fields_str",AF,AFR_AF,AMR_AF,EAS_AF,EUR_AF,SAS_AF,gnomAD_AF,gnomAD_A
 	--custom $db/WBBC/hg19/WBBC.GRCh37.vcf.gz,WBBC,vcf,exact,,AF,North_AF,Central_AF,South_AF,Lingnan_AF
 
 # 结果整理
-#sed -n '1,10000p' AIJ481.merged.anno_vep.test.txt > AIJ481.merged.anno_vep.test.sub.txt
+#sed -n '1,10000p' AIJ481.merged.anno_vep.other.txt > AIJ481.merged.anno_vep.other.sub.txt
 python handle_vep_result.py --anno AIJ481.anno_vep.txt --vcf AIJ481.merged.vcf.gz --out AIJ481.anno_vep.merged.txt
 
 echo ==== end__ at $(date "+%F  %H:%M:%S") ====

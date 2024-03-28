@@ -27,7 +27,7 @@ cd $outdir/STAR_EBseq/02.DEG
 
 star_result=$outdir/STAR_EBseq/01.STAR/*ReadsPerGene.out.tab
 
-#python /mnt/share02/lixx/05.database/05.GTex/3.test/STAR_EBseq/1.script/star_gtex_merge_EBseq.py \
+#python /mnt/share02/lixx/05.database/05.GTex/3.other/STAR_EBseq/1.script/star_gtex_merge_EBseq.py \
 python /mnt/share02/lixx/05.database/05.GTex/3.test/STAR_DEseq2/1.script/star_gtex_merge_EBseq_DEseq2.py \
 	--star_ReadsPerGene $star_result \
 	--gtex_path /mnt/share02/lixx/05.database/05.GTex/2.GTex_database \

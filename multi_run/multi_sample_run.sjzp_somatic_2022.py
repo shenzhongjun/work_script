@@ -28,10 +28,10 @@ def get_args():
 def make_shell(tumor, normal, platform, t_fq1, t_fq2, n_fq1, n_fq2, outdir, sh):
     if platform == 'T7':
         adapter = '/mnt/share02/zhouyj/database/adapter/BGI_adapter.fa'
-        bed = "/mnt/share05/clinical_project/projects/blood_tumor/test/zhouyj_test/quality_assess/somatic_2022/rawdata/BGI/BGI.bed"
+        bed = "/mnt/share05/clinical_project/projects/blood_tumor/other/zhouyj_test/quality_assess/somatic_2022/rawdata/BGI/BGI.bed"
     elif platform == 'Illumina':
         adapter = '/mnt/share02/zhouyj/database/adapter/Illumina_adapter.fa'
-        bed = '/mnt/share05/clinical_project/projects/blood_tumor/test/zhouyj_test/quality_assess/somatic_2022/rawdata/Illumina/Illumina.bed'
+        bed = '/mnt/share05/clinical_project/projects/blood_tumor/other/zhouyj_test/quality_assess/somatic_2022/rawdata/Illumina/Illumina.bed'
     else:
         raise Exception("平台设置错误，流程仅支持Illumina、T7平台")
     fasta = "/mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/J_hg19_reference/hg19_reference_with_NC.fasta"

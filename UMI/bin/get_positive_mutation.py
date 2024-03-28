@@ -70,7 +70,7 @@ if __name__ == "__main__":
     positive_list = args.positive_list
     mut_df = pd.read_table(os.path.join(positive_list))
     # anno_path example:
-    # '/mnt/share05/clinical_project/projects/blood_tumor/test/zhufu_test/UMI/ctDNA*/DYDFZ*/step10.annotation/*hg19_multianno.reform.xls'
+    # '/mnt/share05/clinical_project/projects/blood_tumor/other/zhufu_test/UMI/ctDNA*/DYDFZ*/step10.annotation/*hg19_multianno.reform.xls'
     if args.anno_path:
         path = args.anno_path
         mut_paths = get_file_paths(path)

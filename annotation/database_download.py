@@ -412,7 +412,7 @@ if __name__ == "__main__":
 #     # 将数据保存到文件中
 #     print(response.content.decode("utf-8"))
 #     df = pd.read_json(response.content.decode("utf-8"))
-#     df.to_csv('test.txt', sep='\t', index=False)
+#     df.to_csv('other.txt', sep='\t', index=False)
 #     print(df)
 # else:
 #     print(f"Error: {response.status_code}")

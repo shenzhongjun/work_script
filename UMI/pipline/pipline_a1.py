@@ -16,7 +16,7 @@ localtime = time.strftime("%Y_%m_%d_%H%M%S")
 """
 python pipline.py \
 	--sample ng10 \
-	--path /mnt/share05/clinical_project/projects/blood_tumor/xuefei_test/UMI_naangda/test \
+	--path /mnt/share05/clinical_project/projects/blood_tumor/xuefei_test/UMI_naangda/other \
 	--fq1 /mnt/share05/clinical_project/projects/blood_tumor/xuefei_test/UMI_naangda/demo/UMI_NanoPrep_10ng_illumina_Demo/NL190929-1C.R1.fastq.gz \
 	--fq2 /mnt/share05/clinical_project/projects/blood_tumor/xuefei_test/UMI_naangda/demo/UMI_NanoPrep_10ng_illumina_Demo/NL190929-1C.R2.fastq.gz \
 	--ref /mnt/share03/tumor_pipeline/Somatic/DNA/Pipeline/Somatic_V1/database/J_hg19_reference/hg19_reference_with_NC.fasta \

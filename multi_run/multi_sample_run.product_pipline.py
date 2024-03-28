@@ -93,7 +93,7 @@ if __name__ == "__main__":
             w.write("""/mnt/share01/tools/miniconda/bin/python /mnt/share01/tools/pipeline/clinical_pipeline/dna_pipeline/Releases/v2.0/clinical_genomic_pipeline_v2.0.py \\
     --samplelist $PWD/sample_list.txt \\
     --project_dir $PWD \\
-    --test
+    --other
 """)
         if argv.qsub:
             subprocess.call(f'cd {tumor_id} && sh run.sh && sjm *sjm && cd -', shell=True)
