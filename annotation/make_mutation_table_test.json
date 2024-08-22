@@ -27,8 +27,7 @@
   "rename_dict": {
     "Uploaded_variation": "突变编号", "chr": "染色体", "REF_ALLELE": "参考碱基", "Allele": "突变碱基", "SYMBOL": "基因",
     "Gene": "基因ID", "Feature": "转录本ID", "STRAND": "基因方向", "VARIANT_CLASS": "突变方式",
-    "pathogenicity": "致癌性分类", "points": "分值", "evidence": "证据条目", "EXON": "外显子位置",
-    "Interpro_domain": "Interpro结构域", "UniProt": "UniProt结构域",
+    "pathogenicity": "致癌性分类", "points": "分值", "evidence": "证据条目", "Interpro_domain": "Interpro结构域", "UniProt": "UniProt结构域",
     "OncoKB": "OncoKB结论", "COSMIC": "COSV号", "COSMIC_LEGACY_ID": "COSM号", "COSMIC_CNT": "COSMIC样本数", "AA_Change_Count": "Hotspot样本数",
     "ClinVar": "Clinvar号", "ClinVar_CLNVI": "ClinGen号", "ClinVar_CLNSIG": "Clinvar结论", "ClinVar_CLNREVSTAT":"Clinvar证据", "ClinVar_CLNDN": "Clinvar疾病",
     "max_af": "MAX_AF", "AF": "1000g_AF", "EAS_AF": "1000g_EAS_AF", "AFR_AF": "1000g_AFR_AF", "AMR_AF": "1000g_AMR_AF",
@@ -39,7 +38,7 @@
     "突变编号", "总深度_肿瘤", "突变深度_肿瘤", "突变率_肿瘤", "总深度_对照", "突变深度_对照", "突变率_对照",
     "突变可靠性", "突变来源", "致癌性分类", "分值", "证据条目", "突变类型", "突变小类",
     "基因", "基因ID", "转录本ID", "染色体", "起始位置", "终止位置", "参考碱基", "突变碱基", "HGVSg", "HGVSc", "HGVSp",
-    "氨基酸改变", "基因方向", "外显子位置", "rs号", "OncoKB结论", "Clinvar号", "ClinGen号", "Clinvar结论", "Clinvar证据", "Clinvar疾病",
+    "氨基酸改变", "基因方向", "突变位置", "rs号", "OncoKB结论", "Clinvar号", "ClinGen号", "Clinvar结论", "Clinvar证据", "Clinvar疾病",
     "COSV号", "COSM号", "COSMIC样本数", "Hotspot样本数", "Interpro结构域", "UniProt结构域",
     "疾病omim", "遗传方式", "疾病表型",
     "MAX_AF", "1000g_AF", "1000g_EAS_AF", "1000g_AFR_AF", "1000g_AMR_AF", "1000g_EUR_AF", "1000g_SAS_AF",

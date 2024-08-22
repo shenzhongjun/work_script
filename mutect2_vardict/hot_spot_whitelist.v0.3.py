@@ -5,6 +5,7 @@
 Vardict Vcf文件筛选白名单热点突变，兼容特殊变异检测；支持室间质评降低阈值检测。
 v0.3更新：普通(ordinary)白名单十分可靠的也保留。
 v0.3.1更新：超级白名单点突变应用碱基质量>=35，以排除包含低碱基质量的假阳
+2024年8月9日 v0.3.2更新：增加--chip参数，如果是NVT芯片，检出限下调为千分之三
 """
 
 __author__ = "ZhouYiJie"
@@ -24,6 +25,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Vardict Vcf文件过热点突变超级白名单，兼容特殊变异检测。')
     parser.add_argument('--input_vcf', '-i', help='vcf输入文件路径', required=True)
     parser.add_argument('--output_vcf', '-o', help='vcf输出文件路径', required=True)
+    parser.add_argument('--chip', '-c', help='所用芯片', required=True)
     parser.add_argument('--hot_db', '-d', help='热点突变数据库',
                         default=f'{os.path.dirname(os.path.realpath(__file__))}/hot_spot_whitelist.xlsx')
     parser.add_argument('--sjzp', '-s', help='ctDNA室间质评超低频突变检测模式', action='store_true')
@@ -31,9 +33,10 @@ def get_args():
 
 
 class HotSpotVcf(Vcf):
-    def __init__(self, tag, path, input_vcf, hot_db):
+    def __init__(self, tag, path, input_vcf, hot_db, chip):
         super().__init__(tag, path)
         self.db = hot_db
+        self.chip = chip
         self.file_format = input_vcf.file_format
         self.filter = input_vcf.filter
         self.info = input_vcf.info
@@ -77,6 +80,7 @@ class HotSpotVcf(Vcf):
             msirep = float(re.search('MSI=(.*?);', x['info']).group(1))
             long_indel = len(x['ref']) > 50 or len(x['alt']) > 50
             vaf_ratio = float(vaf / normal_vaf) > 2 if normal_vaf > 0 else True
+            vaf_threshold = 0.003 if self.chip == 'NVT' else 0.004
 
             # 获得变异注释信息
             gene = re.search('Gene.refGene=(.*?);', x['info']).group(1)
@@ -89,7 +93,7 @@ class HotSpotVcf(Vcf):
             # 特殊变异检测须进行更严格的过滤，尤其是STR导致的fs过滤，否则报出假阳过多
             if not sjzp:
                 # 超级白名单特殊检测阈值
-                special_filter = (0.004 <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 30 and
+                special_filter = (vaf_threshold <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 30 and
                                   not long_indel and
                                   not (msirep >= 3 and vaf <= 0.1))
                 # 超级白名单阈值
@@ -98,7 +102,7 @@ class HotSpotVcf(Vcf):
                 else:
                     # 超级白名单点突变有类似3个38带一个12的，因此也需bq过滤
                     # 有germline_risk假阳性出现，应加入vaf_ratio
-                    base_filter = vaf >= 0.004 and reads >= 4 and bq >= 30 and vaf_ratio
+                    base_filter = vaf >= vaf_threshold and reads >= 4 and bq >= 30 and vaf_ratio
                 # 普通白名单特殊检测阈值
                 ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
                                       and not long_indel
@@ -170,6 +174,6 @@ if __name__ == "__main__":
     input_vcf = Vcf('Vardict', args.input_vcf)
     input_vcf.get_header()
     input_vcf.get_mutdf()
-    output_vcf = HotSpotVcf('HotSpot', args.output_vcf, input_vcf, args.hot_db)
+    output_vcf = HotSpotVcf('HotSpot', args.output_vcf, input_vcf, args.hot_db, args.chip)
     output_vcf.get_hotspot(args.sjzp)
     output_vcf.write_vcf()

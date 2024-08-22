@@ -54,11 +54,11 @@ def tag_vcf(x):
     low_vcf_ratio = (vaf > 0 and normal_vaf > 0 and float(vaf / normal_vaf) < 3)
 
     # 对P0.05的SNV变异进行捞回
-    if mut_type == 'SNV' and vaf >= 0.003 and reads >= 3 and normal_reads == 0 and not msi and filter_tags == {'P0.05'}:
+    if mut_type == 'SNV' and vaf >= 0.003 and reads >= 2 and normal_reads == 0 and not msi and filter_tags == {'P0.05'}:
         filter_tags.add('PASS')
 
     # 过滤低于检出限的突变
-    if vaf < 0.003 or reads < 3:
+    if vaf < 0.003 or reads < 2:
         filter_tags.add('below_lod')
         if 'PASS' in filter_tags:
             filter_tags.remove('PASS')
@@ -78,7 +78,7 @@ def tag_vcf(x):
             filter_tags.add('germline_risk')
             if 'PASS' in filter_tags:
                 filter_tags.remove('PASS')
-        elif reads <= 3 and x['format'] == 'GT:DP:VD:ALD:RD:AD:AF:BIAS:PMEAN:PSTD:QUAL:QSTD:SBF:ODDRATIO:MQ:SN:HIAF:ADJAF:NM' \
+        elif reads < 2 and x['format'] == 'GT:DP:VD:ALD:RD:AD:AF:BIAS:PMEAN:PSTD:QUAL:QSTD:SBF:ODDRATIO:MQ:SN:HIAF:ADJAF:NM' \
                 and float(x['tumor_id'].split(':')[-9]) <= 30:         # 处理支持reads少且质量不高的变异
             if 'PASS' in filter_tags:
                 filter_tags.remove('PASS')

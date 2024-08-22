@@ -61,7 +61,7 @@ def tag_vcf(x, t, n):
         sor = float(re.search("SOR=(.*)", x['info']).group(1)) if 'SOR=' in x['info'] else 0
 
         if (x['ref'] == '*' or x['alt'] == '*' or len(x['ref']) >= 30 or len(x['alt']) >= 30 or fs > 80 or mq < 40 or
-                qd < 1 or rpos < -20 or sor > 20 or normal_vaf < 0.25 or normal_total_reads < 20 or normal_reads < 5 or
+                qd < 1 or rpos < -20 or sor > 20 or normal_vaf < 0.25 or normal_total_reads < 15 or normal_reads < 5 or
                 total_reads < 20 or reads < 5):
             x['filter'] = '.'
     return x

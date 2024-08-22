@@ -4,6 +4,7 @@
 """
 VEP注释结果提取MANE转录本并添加VCF中必要信息，进一步生成肿瘤突变评级结果。
 v0.2 开发版
+2024-4-23：提高移码突变优先级
 """
 
 __author__ = "ZhouYiJie"
@@ -79,6 +80,20 @@ def get_total_depth(x):
         return int(x.split(':')[1])
 
 
+def get_exon_intron(x):
+    if x['EXON'] != '-' and x['INTRON'] == '-':
+        return x['EXON']
+    elif x['EXON'] != '-' and x['INTRON'] != '-':
+        if x['HGVSp'] != '-':
+            return x['EXON']
+        else:
+            return x['INTRON']
+    elif x['EXON'] == '-' and x['INTRON'] != '-':
+        return x['INTRON']
+    else:
+        return '-'
+
+
 def change_consequence(x):
     items = set(x['突变小类'].split(','))
 
@@ -113,7 +128,6 @@ def change_consequence(x):
 
     if len(items) == 0:
         items.add('未知突变')
-    x['突变小类'] = ','.join(list(items))  # 突变小类去重，然后处理为突变大类
 
     if '起始密码子保留' in items or '终止密码子保留' in items:
         items.add('同义突变')
@@ -141,7 +155,7 @@ def change_consequence(x):
     if '同义突变' in items and ('移码突变' in items or '非移码突变' in items):
         items.remove('移码突变') if '移码突变' in items else items.remove('非移码突变')
 
-    choose_order = ['同义突变', '截断突变', '延长突变', '起始密码子突变', '移码突变', '非移码突变', '错义突变',
+    choose_order = ['同义突变', '截断突变', '延长突变', '移码突变', '起始密码子突变', '非移码突变', '错义突变',
                     '剪切位点突变', '剪切位点附近突变', '非编码区突变', '基因上游突变', '基因下游突变', '基因间区突变',
                     '未知突变']
     chosen_item = ''
@@ -150,6 +164,7 @@ def change_consequence(x):
             chosen_item = item
             break
 
+    x['突变小类'] = ','.join(list(items))  # 突变小类去重
     x['突变类型'] = chosen_item
     return x
 
@@ -392,7 +407,12 @@ if __name__ == "__main__":
     # 提取MANE转录本
     anno_df['RefSeq_id'] = anno_df['Feature'].str.split('.', expand=True)[0]
     anno_df = anno_df.merge(mane_df, on='RefSeq_id', how='left')
-    anno_df = anno_df.dropna(subset=['Protein_len'])
+    # 针对脑瘤TERT启动子突变chr5_1295228_G/A和chr5_1295250_G/A注释到基因间区没有转录本的情况单独设置
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'RefSeq_id'] = 'NM_198253'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'Protein_len'] = '1132'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'RefSeq_id'] = 'NM_198253'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'Protein_len'] = '1132'
+    anno_df = anno_df.dropna(subset=['Protein_len'])        # Protein_len为NA代表位于基因间区
     # 与注释前vcf合并以获取vcf信息
     merge_df = anno_df.merge(vcf_df, on='Uploaded_variation', how='left')
 
@@ -401,10 +421,10 @@ if __name__ == "__main__":
     logging.info('变异基本信息整理')
     merge_df['总深度_肿瘤'] = merge_df['tumor'].apply(get_total_depth)
     merge_df['突变深度_肿瘤'] = merge_df['tumor'].apply(get_alt_depth)
-    merge_df['突变率_肿瘤'] = (merge_df['突变深度_肿瘤'] / merge_df['总深度_肿瘤']).fillna(0).round(4)
+    merge_df['突变率_肿瘤'] = (merge_df['突变深度_肿瘤'] / merge_df['总深度_肿瘤']).fillna(0).round(3)
     merge_df['总深度_对照'] = merge_df['normal'].apply(get_total_depth)
     merge_df['突变深度_对照'] = merge_df['normal'].apply(get_alt_depth)
-    merge_df['突变率_对照'] = (merge_df['突变深度_对照'] / merge_df['总深度_对照']).round(4)
+    merge_df['突变率_对照'] = (merge_df['突变深度_对照'] / merge_df['总深度_对照']).round(3)
     merge_df['突变可靠性'] = merge_df['filter'].apply(lambda x: '相对可靠' if 'PASS' in x else '不可靠')
     merge_df['突变来源'] = merge_df['filter'].apply(whether_somatic)
     merge_df['突变小类'] = merge_df['Consequence'].replace(json_content['cons_replace_dict'], regex=True)
@@ -418,7 +438,9 @@ if __name__ == "__main__":
     merge_df['HGVSp'] = merge_df['HGVSp'].str.split(':', expand=True)[1]
     merge_df['氨基酸改变'] = merge_df['HGVSp'].replace(json_content['amino_acids_dict'], regex=True)
     merge_df['STRAND'] = merge_df['STRAND'].replace(json_content['strand_replace_dict'])
-    merge_df['EXON'] = merge_df['EXON'].replace('/', ',', regex=True)
+    merge_df['EXON'] = merge_df['EXON'].apply(lambda x: 'exon' + x.replace('/', ',') if x != '-' else x)
+    merge_df['INTRON'] = merge_df['INTRON'].apply(lambda x: 'IVS' + x.replace('/', ',') if x != '-' else x)
+    merge_df['突变位置'] = merge_df.apply(get_exon_intron, axis=1)
     merge_df = merge_df.parallel_apply(change_consequence, axis=1)      # 结合注释信息，突变小类整合为突变类型
 
     # -----------公开数据库-----------
