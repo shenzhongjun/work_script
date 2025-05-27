@@ -98,6 +98,7 @@ class OrderCreator(object):
             dict_response = json.loads(response.read().decode('utf-8'))["data"]
             sample_data = [line for line in self.batch_data if line.split(',')[1] == order_num]
             appendix = self.get_appendix(order_num)
+            # print(order_num, dict_response, sample_data, appendix)
             order = Order(order_num, dict_response['title'], dict_response['family_member_code'],
                           dict_response['products'], sample_data, appendix)
             self.df = self.df.append(
@@ -370,7 +371,7 @@ def get_batch_data(batchs):
     codes = '/mnt/share05/data/product_raw_data/rawdata/script/cancer_code.list'
     for b in batchs:
         subprocess.call(
-            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq|ScRNAseq-V2|SR01|ScTCRseq|SH01|S2H01' >> batch_tmp.txt",
+            f"grep -P '\t{b}\t' {ngs_file} | grep -w -f {codes} | grep -E -v 'ZRNDZL|ZRnDZL|NHCeF|HLA-|mNGS-seq|NHC|S0301|NBESR|NRS0301J|S0301J|ScRNAseq|ScRNAseq-V2|SR01|ScTCRseq|SH01|S2H01|IQC-WESZL' >> batch_tmp.txt",
             shell=True)
     data = subprocess.getoutput(f"awk -F '\t' '{{OFS=\",\"}}{{$1=$1;gsub(/,/, \"，\", $12); print $3,$15,$4,$5,$2,$7,$12}}' batch_tmp.txt | "
                                 f"sort -k 2,2 -k 1n,1 -t,")

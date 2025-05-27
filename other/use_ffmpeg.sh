@@ -1,7 +1,7 @@
 conda activate pytorch
 
 # 将视频转为音频
-ffmpeg -i input/S40323-21304266.mp4 20240323课.mp3
+ffmpeg -i S40323-21304266.mp4 20240323课.mp3
 
 # 音频降噪
 ffmpeg -i input/22.1.29.mp3 -af "volume=4,anlmdn,highpass=f=100,lowpass=f=3000,equalizer=f=1000:t=h:w=150:g=5,acompressor=threshold=-20dB:ratio=4:attack=50:release=100" output/22.1.29_new.aac
@@ -10,8 +10,8 @@ ffmpeg -i input/20221026.m4a -af "anlmdn,highpass=f=100,lowpass=f=3000,equalizer
 # 批量降噪 
 for i in `ls input/*`;do name=`echo $i|cut -f2 -d/`;echo $i; ffmpeg -i $i -threads 4 -af "volume=4,anlmdn,highpass=f=100,lowpass=f=3000,equalizer=f=1000:t=h:w=150:g=5,acompressor=threshold=-20dB:ratio=4:attack=50:release=100" output/$name; done
 
-# 音频合并左右声道，aac转为mp3效果比保持aac好
-ffmpeg -i input/20231026.aac -ac 1 output/20231026.mp3
+# 音频合并左右声道，aac转为mp3效果比保持aac好 课
+ffmpeg -i 20231026.aac -ac 1 20231026.mp3
 
 # 批量合并左右声道
 for i in `ls input/*`;do name=`echo $i|cut -f2 -d/`;echo $i; ffmpeg -i $i -ac 1 output/$name; done

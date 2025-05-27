@@ -80,7 +80,7 @@ class HotSpotVcf(Vcf):
             msirep = float(re.search('MSI=(.*?);', x['info']).group(1))
             long_indel = len(x['ref']) > 50 or len(x['alt']) > 50
             vaf_ratio = float(vaf / normal_vaf) > 2 if normal_vaf > 0 else True
-            vaf_threshold = 0.003 if self.chip == 'NVT' else 0.004
+            vaf_threshold = 0.02 if self.chip == 'IDT' else 0.01    # WES检出限2%，Panel检出限1%。
 
             # 获得变异注释信息
             gene = re.search('Gene.refGene=(.*?);', x['info']).group(1)
@@ -93,7 +93,7 @@ class HotSpotVcf(Vcf):
             # 特殊变异检测须进行更严格的过滤，尤其是STR导致的fs过滤，否则报出假阳过多
             if not sjzp:
                 # 超级白名单特殊检测阈值
-                special_filter = (vaf_threshold <= vaf < 0.9 and reads >= 5 and normal_reads == 0 and bq >= 30 and
+                special_filter = (vaf_threshold <= vaf < 0.9 and reads >= 6 and normal_reads == 0 and bq >= 30 and
                                   not long_indel and
                                   not (msirep >= 3 and vaf <= 0.1))
                 # 超级白名单阈值
@@ -102,7 +102,8 @@ class HotSpotVcf(Vcf):
                 else:
                     # 超级白名单点突变有类似3个38带一个12的，因此也需bq过滤
                     # 有germline_risk假阳性出现，应加入vaf_ratio
-                    base_filter = vaf >= vaf_threshold and reads >= 4 and bq >= 30 and vaf_ratio
+                    # 2025-5-13更新：会议决议，低于检出限不报。另，实验不给验证的情况下最低支持reads数4条实在太少，改成5条。
+                    base_filter = vaf >= vaf_threshold and reads >= 5 and bq >= 30 and vaf_ratio
                 # 普通白名单特殊检测阈值
                 ord_special_filter = (var_type == 'SNV' and vaf >= 0.01 and reads >= 8 and bq >= 30 and normal_reads == 0
                                       and not long_indel

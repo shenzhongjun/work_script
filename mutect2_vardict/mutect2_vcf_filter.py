@@ -62,7 +62,9 @@ def tag_vcf(x, t, n):
 
     # #### 过滤 ####
     # 过滤低于检出限的突变
-    if vaf < 0.006 or reads < 4:        # Mutect2实际上无力检出0.5%频率的突变，一般检出限在1%，甚至个别2%的也会漏检
+    # Mutect2实际上无力检出0.5%频率的突变，一般检出限在1%，甚至个别2%的也会漏检。
+    # 因WES测序深度降低，总深度不到400且4条reads支持的突变无法验证，应提高阈值
+    if vaf < 0.009 or reads < 4 or (total_reads < 400 and reads < 5):
         filter_tags.add('below_lod')
         if 'PASS' in filter_tags:
             filter_tags.remove('PASS')
@@ -74,13 +76,16 @@ def tag_vcf(x, t, n):
             filter_tags.remove('PASS')
 
     # 过滤同一单体型上的突变
-    if 'PGT' in x['format'] and (vaf < 0.01 or normal_reads > 1):
+    if 'PGT' in x['format'] and (vaf < 0.01 or (normal_reads > 2 and low_vaf_ratio)):
         filter_tags.add('haplotype')
         if 'PASS' in filter_tags:
             filter_tags.remove('PASS')
 
     # 严格过滤STR。2023年9月26日：最低频率改为10%，总reads数100
-    if msirep >= 3 and (vaf <= 0.1 or normal_reads >= 1 or total_reads <= 100 or normal_total_reads <= 100):
+    # 2025年3月5日：因未实验验证过，对照只能卡得过于严格，造成一个漏报。现放宽阈值以便对报出的位点进行验证。
+    # 2025年3月20日：经实验验证表明，STR对照的系统性误差至少有1%。
+    # if msirep >= 3 and (vaf <= 0.1 or normal_reads >= 1 or total_reads <= 100 or normal_total_reads <= 100):
+    if msirep >= 3 and (vaf <= 0.2 or normal_vaf >= 0.05):
         filter_tags.add('short_tandem_repeat')
         if 'PASS' in filter_tags:
             filter_tags.remove('PASS')
@@ -98,12 +103,20 @@ def tag_vcf(x, t, n):
             filter_tags.remove('PASS')
 
     # #### 捞回 ####
-    can_pass_tags = {'multiallelic', 'slippage', 'normal_artifact', 'germline_risk'}
+    can_pass_tags = {'multiallelic', 'slippage', 'normal_artifact', 'germline_risk', 'orientation'}     # 回退，不需要改这个, 'haplotype', 'clustered_events'
     if filter_tags.issubset(can_pass_tags):
         # Mutect2检出的多等位基因突变多位于STR区域或旁边，indel不可信，与normal_artifact同时出现也不可信
         if 'multiallelic' in filter_tags:
             if 'normal_artifact' not in filter_tags and len(x['ref']) == 1 and len(x['alt']) == 1:
                 filter_tags.add('PASS')
+        # Mutect2检出的orientation单独出现且reads较多时可以认为可靠
+        if {'orientation'} == filter_tags:
+            if vaf >= 0.02 and reads >= 8:
+                filter_tags.add('PASS')
+        # # Mutect2检出的haplotype单独出现且reads较多时可以认为可靠 2024年12月23日：回退
+        # if filter_tags.issubset({'haplotype', 'clustered_events'}):
+        #     if vaf >= 0.02 and reads >= 8:
+        #         filter_tags.add('PASS')
         else:
             filter_tags.add('PASS')
 

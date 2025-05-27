@@ -40,11 +40,11 @@ def get_args():
     parser.add_argument('--hotspot', help='癌症热点突变数据库路径',
                         default=f'{db_path}/custom/hotspots_v2.clean.20230609.txt')
     parser.add_argument('--osgene', help='原癌基因抑癌基因数据库路径',
-                        default=f'{db_path}/custom/oncogenes_suppressorgenes.clean.20230609.txt')
-    # parser.add_argument('--uniprot', help='UniProt蛋白结构域数据库路径',
-    #                     default=f'{db_path}/custom/UniProt/uniprot_for_OM1-20230103.xlsx')
+                        default=f'{ db_path}/custom/oncogenes_suppressorgenes.clean.20230609.txt')
+    parser.add_argument('--riskgene', help='肿瘤遗传易感基因数据库路径',
+                        default=f'{db_path}/custom/慧系版报告-solid_tumor_genetic_predisposed_gene.xlsx')
     parser.add_argument('--oncodb', help='OncoKB和CKB合并后的突变致癌性数据库路径',
-                        default=f'{db_path}/custom/cbp_ckb_white.merge.20230720.txt')
+                        default=f'{db_path}/custom/cbp_ckb_white.merge.20240315.txt')
     parser.add_argument('--json', help='配置结果输出列名及内容的json文件',
                         default=f'{os.path.dirname(os.path.realpath(__file__))}/make_mutation_table_test.json')
     return parser.parse_args()
@@ -92,6 +92,36 @@ def get_exon_intron(x):
         return x['INTRON']
     else:
         return '-'
+
+
+def is_evidence_sufficient(review_status, mutation_type):
+    """
+    根据ClinVar审核状态和突变类型判断是否满足证据要求
+    """
+    # 定义审核状态到星级的映射
+    status_to_stars = {
+        'practice_guideline': 4,
+        'reviewed_by_expert_panel': 3,
+        'criteria_provided,_multiple_submitters,_no_conflicts': 2,
+        'criteria_provided,_conflicting_interpretations': 1,
+        'criteria_provided,_single_submitter': 1,
+        'no_assertion_criteria_provided': 0,
+        'no_assertion_provided': 0,
+        'no_interpretation_for_the_single_variant': 0,
+        'no_classification_for_the_single_variant': 0
+    }
+
+    # 获取当前状态的星级
+    stars = status_to_stars.get(review_status.lower(), 0)   # 尝试获取状态对应的星级，失败时视为0星
+
+    # 根据突变类型判断
+    if mutation_type.lower() == 'somatic':
+        return stars >= 1  # 体细胞突变需要至少1星
+    elif mutation_type.lower() == 'germline':
+        # print(review_status, mutation_type, stars)
+        return stars >= 2  # 胚系突变需要至少2星
+    else:
+        return False  # 未知突变类型返回False
 
 
 def change_consequence(x):
@@ -142,7 +172,7 @@ def change_consequence(x):
         items.remove('剪切位点附近突变')
 
     if '起始密码子突变' in items:
-        if x['HGVSp'] != 'p.Met1?':
+        if x['HGVSp'] not in ['p.Met1?', 'p.Val1?', 'p.Ile1?', 'p.Leu1?']:
             items.remove('起始密码子突变')
             if x['HGVSp'] and '?' in x['HGVSp']:
                 x['HGVSp'] = x['HGVSp'].replace('?', 'del')
@@ -169,7 +199,7 @@ def change_consequence(x):
     return x
 
 
-def pathogenicity_rating(x):
+def pathogenicity_rating(x, risk_gene_list):
     """
     OM = Oncogenic Moderate; OP = Oncogenic Supporting; OS = Oncogenic Strong; OVS = Oncogenic Very Strong;
     SBP = Somatic Benign Supporting; SBS = Somatic Benign Strong; SBVS = Somatic Benign Very Strong
@@ -178,10 +208,10 @@ def pathogenicity_rating(x):
     # if x['突变来源'] != '胚系突变':
     evidence = []
     # 人群频率评分
-    if float(x['max_af']) >= 0.05:
+    if float(x['MAX_AF']) >= 0.05:
         points = -8
         evidence.append('SBVS1')
-    elif 0.01 <= float(x['max_af']) < 0.05:
+    elif 0.01 <= float(x['MAX_AF']) < 0.05:
         points = -4
         evidence.append('SBS1')
     else:
@@ -189,25 +219,35 @@ def pathogenicity_rating(x):
         evidence.append('OP4')
 
     # 功能数据评分
-    if 'OS1' not in evidence and ('Oncogenic' in x['OncoKB'] or 'of function' in x['OncoKB']) or (
-            ('Pathogenic' in x['ClinVar_CLNSIG'] or 'Likely_pathogenic' in x['ClinVar_CLNSIG']) and (
-            'reviewed_by_expert_panel' in x['ClinVar_CLNREVSTAT']) and ('ClinGen:CA' in x['ClinVar_CLNVI'])
+    """
+    OS2判断条件：OS1不适用时，
+    OncoKB字段包含'Oncogenic'、'of function'，
+    或ClinVar_ONC字段包含'Oncogenic'且ClinVar_ONCREVSTAT证据有效，
+    或基因在遗传易感基因列表且ClinVar_CLNSIG字段包含'Pathogenic'、'Likely_pathogenic'且证据有效
+    """
+    if 'OS1' not in evidence and (
+            ('Oncogenic' in x['OncoKB'] or 'of function' in x['OncoKB']) or
+            ('Oncogenic' in x['ClinVar_ONC'] and is_evidence_sufficient(x['ClinVar_ONCREVSTAT'], 'somatic')) or
+            (x['SYMBOL'] in risk_gene_list and ('Pathogenic' in x['ClinVar_CLNSIG'] or 'Likely_pathogenic' in x['ClinVar_CLNSIG']) and
+              is_evidence_sufficient(x['ClinVar_CLNREVSTAT'], 'germline'))
     ):
         points += 4
         evidence.append('OS2')
 
-    ignore_keywords = ['重复区域', 'Repeat', 'repeat']
-    if ('OS1' not in evidence and 'OS3' not in evidence) and (
-            (x['UniProt'] != '-' and all(a not in x['UniProt'] for a in ignore_keywords)) or
-            (x['Interpro_domain'] != '-' and all(a not in x['Interpro_domain'] for a in ignore_keywords))):
-        points += 2
-        evidence.append('OM1')
     if ('Neutral' in x['OncoKB'] or 'no effect' in x['OncoKB']) or (
-            ('Benign' in x['ClinVar_CLNSIG'] or 'Likely_benign' in x['ClinVar_CLNSIG']) and (
-            'reviewed_by_expert_panel' in x['ClinVar_CLNREVSTAT']) and ('ClinGen:CA' in x['ClinVar_CLNVI'])
+            ('Benign' in x['ClinVar_CLNSIG'] or 'Likely_benign' in x['ClinVar_CLNSIG']) and
+            (is_evidence_sufficient(x['ClinVar_CLNREVSTAT'], 'germline')) and (x['SYMBOL'] in risk_gene_list)
     ):
         points += -4
         evidence.append('SBS2')
+
+    # OM1蛋白功能域，去除重复区域、间区；2025年3月26日：两个数据库改为取交集
+    ignore_keywords = ['重复区域', 'Repeat', 'repeat', 'Spacer', 'spacer']
+    if ('OS1' not in evidence and 'OS3' not in evidence) and (
+            (x['UniProt'] != '-' and all(a not in x['UniProt'] for a in ignore_keywords)) and
+            (x['Interpro_domain'] != '-' and all(a not in x['Interpro_domain'] for a in ignore_keywords))):
+        points += 2
+        evidence.append('OM1')
 
     # 预测数据
     aaposion = -9 if x['氨基酸改变'] == '-' else re.match(r'p\..*([0-9]+).*', x['氨基酸改变']).group(1)
@@ -272,15 +312,6 @@ def pathogenicity_rating(x):
     return x
 
 
-def get_uniprot(x, df):
-    gene_df = df[df['Gene'] == x['SYMBOL']]
-    aa_posion = int(re.match(r'p\..+([0-9]+).*', x['氨基酸改变']).group(1)) if x['氨基酸改变'] else 0
-    for index, row in gene_df.iterrows():
-        if int(row['Amino Acid Start']) <= aa_posion <= int(row['Amino Acid End']):
-            return row['中文名称']
-    return '-'
-
-
 def trim_interpro(x):
     if x != '-':
         split_set = set(x.split(','))
@@ -294,16 +325,18 @@ def trim_interpro(x):
 
 
 def get_max_af(x):
-    afs = ["AF", "EAS_AF", "AFR_AF", "AMR_AF", "EUR_AF", "SAS_AF", "gnomADe_AF",
-           "gnomADe_EAS_AF", "gnomADe_AFR_AF", "gnomADe_AMR_AF",
-           "gnomADe_NFE_AF", "gnomADe_SAS_AF",
+    afs = ["AF", "EAS_AF", "AFR_AF", "AMR_AF", "EUR_AF", "SAS_AF", "gnomAD_exomes_controls_AF",
+           "gnomAD_exomes_controls_EAS_AF", "gnomAD_exomes_controls_AFR_AF", "gnomAD_exomes_controls_AMR_AF",
+           "gnomAD_exomes_controls_NFE_AF", "gnomAD_exomes_controls_SAS_AF",
            "WBBC_AF", "WBBC_North_AF", "WBBC_Central_AF", "WBBC_South_AF", "WBBC_Lingnan_AF"]
     values = []
     for i in afs:
         if x[i] == '-':
             values.append(0)
+        elif 'gnomADe' in i and x['gnomADe_flag'] != '.':
+            values.append(0)
         else:
-            values.append(float(x[i]))
+            values.append(round(float(x[i]), 4))
     return max(values)
 
 
@@ -324,6 +357,8 @@ def get_soft_pred(x, soft):  # 数值越大越有害的软件
         threshold = [0.113, 0.978]
     elif soft == 'revel':
         threshold = [0.290, 0.664]
+    elif soft == 'fathmm-xf':
+        threshold = [0.5, 0.500001]
 
     if x == '-' or x == '.':
         return '-'
@@ -335,7 +370,7 @@ def get_soft_pred(x, soft):  # 数值越大越有害的软件
         return '-'
 
 
-def get_soft2_pred(x, soft):  # 数值越小越有害的软件
+def get_soft2_pred(x, soft):  # 数值越小越有害的软件。2025-5-12注：fathmm已弃用，改成fathmm-xf
     threshold = []
     if soft == 'sift':
         threshold = [0, 0.08]
@@ -367,13 +402,13 @@ def get_mane_pred(x):
         x['REVEL_score'] = x['REVEL_score'].split(',')[mane_index]
         x['Polyphen2_HDIV_score'] = x['Polyphen2_HDIV_score'].split(',')[mane_index]
         x['SIFT_score'] = x['SIFT_score'].split(',')[mane_index]
-        x['FATHMM_score'] = x['FATHMM_score'].split(',')[mane_index]
+        # x['fathmm-XF_coding_score'] = x['fathmm-XF_coding_score'].split(',')[mane_index]
         x['VEST4_score'] = x['VEST4_score'].split(',')[mane_index]
     else:
         x['REVEL_score'] = '-'
         x['Polyphen2_HDIV_score'] = '-'
         x['SIFT_score'] = '-'
-        x['FATHMM_score'] = '-'
+        # x['fathmm-XF_coding_score'] = '-'
         x['VEST4_score'] = '-'
     return x
 
@@ -397,8 +432,9 @@ if __name__ == "__main__":
     vcf_df['Uploaded_variation'] = vcf_df.apply(make_anno_loc, axis=1)
     # 读取VEP注释结果
     with open(args.anno) as f:
-        anno = re.sub('#Uploaded_variation', 'Uploaded_variation', f.read())
-    anno_df = pd.read_table(io.StringIO(anno), comment='#', dtype='str')
+        anno = '\n'.join(line for line in f if not line.startswith('##'))   # 删除所有表头
+        anno = re.sub('#Uploaded_variation', 'Uploaded_variation', anno)
+    anno_df = pd.read_table(io.StringIO(anno), dtype='str')
     # 读取MANE转录本数据库
     mane_df = pd.read_table(args.mane, dtype='str')
     mane_df = mane_df[mane_df['MANE_status'] == 'MANE Select']
@@ -407,10 +443,17 @@ if __name__ == "__main__":
     # 提取MANE转录本
     anno_df['RefSeq_id'] = anno_df['Feature'].str.split('.', expand=True)[0]
     anno_df = anno_df.merge(mane_df, on='RefSeq_id', how='left')
-    # 针对脑瘤TERT启动子突变chr5_1295228_G/A和chr5_1295250_G/A注释到基因间区没有转录本的情况单独设置
-    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'RefSeq_id'] = 'NM_198253'
+    # 针对脑瘤TERT启动子突变chr5_1295228_G/A和chr5_1295250_G/A注释到基因间区没有转录本和基因的情况单独设置
+    # 注：VEP --distance 改成150也可以解决此问题，但可能带来其它假阳，所以直接在代码里改
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'SYMBOL'] = 'TERT'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'Gene'] = '7015'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'Feature'] = 'NM_198253'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'HGVSc'] = 'NM_198253:c.-124G>A'
     anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'Protein_len'] = '1132'
-    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'RefSeq_id'] = 'NM_198253'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'SYMBOL'] = 'TERT'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295228_G/A', 'Gene'] = '7015'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'Feature'] = 'NM_198253'
+    anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'HGVSc'] = 'NM_198253:c.-146G>A'
     anno_df.loc[anno_df['Uploaded_variation'] == 'chr5_1295250_G/A', 'Protein_len'] = '1132'
     anno_df = anno_df.dropna(subset=['Protein_len'])        # Protein_len为NA代表位于基因间区
     # 与注释前vcf合并以获取vcf信息
@@ -421,10 +464,10 @@ if __name__ == "__main__":
     logging.info('变异基本信息整理')
     merge_df['总深度_肿瘤'] = merge_df['tumor'].apply(get_total_depth)
     merge_df['突变深度_肿瘤'] = merge_df['tumor'].apply(get_alt_depth)
-    merge_df['突变率_肿瘤'] = (merge_df['突变深度_肿瘤'] / merge_df['总深度_肿瘤']).fillna(0).round(3)
+    merge_df['突变率_肿瘤'] = (merge_df['突变深度_肿瘤'] / merge_df['总深度_肿瘤']).fillna(0).round(4)
     merge_df['总深度_对照'] = merge_df['normal'].apply(get_total_depth)
     merge_df['突变深度_对照'] = merge_df['normal'].apply(get_alt_depth)
-    merge_df['突变率_对照'] = (merge_df['突变深度_对照'] / merge_df['总深度_对照']).round(3)
+    merge_df['突变率_对照'] = (merge_df['突变深度_对照'] / merge_df['总深度_对照']).fillna(0).round(4)
     merge_df['突变可靠性'] = merge_df['filter'].apply(lambda x: '相对可靠' if 'PASS' in x else '不可靠')
     merge_df['突变来源'] = merge_df['filter'].apply(whether_somatic)
     merge_df['突变小类'] = merge_df['Consequence'].replace(json_content['cons_replace_dict'], regex=True)
@@ -478,24 +521,19 @@ if __name__ == "__main__":
     osgene_df = pd.read_table(args.osgene)
     osgene_df['SYMBOL'] = osgene_df['基因名']
     merge_df = merge_df.merge(osgene_df, on='SYMBOL', how='left')
-    # UniProt结构域注释：由于嵌套循环太慢，将数据库中坐标转为hg19后由vep负责直接注释出来！
-    # logging.info('公开数据库注释信息整理 - 匹配UniProt蛋白数据库')
-    # uniprot_df = pd.read_excel(args.uniprot)
-    # uniprot_df = uniprot_df[['Gene', 'Amino Acid Start', 'Amino Acid End', '中文名称']]
-    # merge_df['UniProt结构域'] = merge_df.apply(get_uniprot, args=(uniprot_df,), axis=1)
     # Interpro结构域去空值
     logging.info('公开数据库注释信息整理 - Interpro蛋白数据库格式整理')
     merge_df['Interpro_domain'] = merge_df['Interpro_domain'].apply(trim_interpro)
-    # 获取人群频率最大值
+    # 获取人群频率最大值 todo:wbbc保留4位有效数字
     logging.info('公开数据库注释信息整理 - 获取最大人群频率')
-    merge_df['max_af'] = merge_df.parallel_apply(get_max_af, axis=1)
+    merge_df['MAX_AF'] = merge_df.parallel_apply(get_max_af, axis=1)
 
     # -----------有害性预测-----------
     logging.info('变异有害性预测信息整理')
     merge_df = merge_df.parallel_apply(get_mane_pred, axis=1)  # 获取MANE转录本的dbNSFP数据库注释结果
     merge_df = merge_df.copy()          # 上一步引发PerformanceWarning: DataFrame is highly fragmented警告，加.copy()解决
     merge_df['CADD预测'] = merge_df['CADD_phred_hg19'].apply(get_soft_pred, args=('cadd',))
-    merge_df['FATHMM预测'] = merge_df['FATHMM_score'].apply(get_soft2_pred, args=('fathmm',))
+    merge_df['FATHMM预测'] = merge_df['fathmm-XF_coding_score'].apply(get_soft_pred, args=('fathmm-xf',))
     merge_df['SIFT预测'] = merge_df['SIFT_score'].apply(get_soft2_pred, args=('sift',))
     merge_df['Polyphen2_HDIV预测'] = merge_df['Polyphen2_HDIV_score'].apply(get_soft_pred, args=('polyphen',))
     merge_df['VEST4预测'] = merge_df['VEST4_score'].apply(get_soft_pred, args=('vest4',))
@@ -512,22 +550,23 @@ if __name__ == "__main__":
 
     # -----------肿瘤突变致病性评级-----------
     logging.info('进行肿瘤突变致病性评级')
+    risk_gene_list = pd.read_excel(args.riskgene, sheet_name=0)['基因'].to_list()
     merge_df = merge_df.fillna('-')
-    merge_df = merge_df.parallel_apply(pathogenicity_rating, axis=1)
+    merge_df = merge_df.parallel_apply(pathogenicity_rating, axis=1, args=(risk_gene_list,))
 
     # =====================结果输出=====================
     # -----------英文列重命名并构建子Sheet-----------
     logging.info('英文列重命名并构建子Sheet')
     merge_df = merge_df.rename(columns=json_content['rename_dict'])
     merge_df = merge_df[json_content['final_col_list']]
-    key_df = merge_df.loc[merge_df['突变可靠性'] != '不可靠', json_content['key_col_list']]
+    # key_df = merge_df.loc[merge_df['突变可靠性'] != '不可靠', json_content['key_col_list']]
     rating_df = pd.DataFrame(json_content['rating_dict'])
     # -----------写入txt和excel文件-----------
     logging.info('最终结果写入txt和excel文件')
     merge_df.to_csv(fr'{args.out}.txt', sep='\t', index=False)
 
     writer = pd.ExcelWriter(fr'{args.out}.xlsx')
-    key_df.to_excel(writer, sheet_name='主要信息', index=False)
+    # key_df.to_excel(writer, sheet_name='主要信息', index=False)   # 2025年3月24日：这个sheet非必须，医学确认后去除
     merge_df.to_excel(writer, sheet_name='突变总表', index=False)
     rating_df.to_excel(writer, sheet_name='突变评级说明', index=False)
     writer.close()

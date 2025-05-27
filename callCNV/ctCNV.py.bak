@@ -5,7 +5,7 @@
 #    2): scatter   add parameter -d / --output--dir
 # updata 190816
 #    1): scatter annotate gene
-""" ctCNV : an novel algorithm to detect SCNA in cfDNA samples. """
+""" callCNV : an novel algorithm to detect SCNA in cfDNA samples. """
 from __future__ import absolute_import, division, print_function
 import os
 import sys
@@ -33,7 +33,7 @@ __version__ = "0.2.0"
 
 def print_version(_args):
     """Display version"""
-    print("ctCNV version: %r" % __version__)
+    print("callCNV version: %r" % __version__)
 
 
 def report_bad_line(line_parser):
@@ -888,7 +888,7 @@ def _cmd_call(args):
 
 
 def _cmd_autocall(args):
-    """A batch commands to run ctCNV pipeline based on existing
+    """A batch commands to run callCNV pipeline based on existing
     reference files (COV and GCS) and tumor sample bam.
     """
     output_dir = args.output_dir
@@ -1164,7 +1164,7 @@ def _cmd_scatter(args):
 def main():
     """ Main command line parser"""
     parser = argparse.ArgumentParser(
-        description="""ctCNV: A novel algorithm for identification of Somatic
+        description="""callCNV: A novel algorithm for identification of Somatic
                     Copy Number Variations in tumor plasma cfDNA sample.""",
         epilog='Contact Hao Guo <guo.hao@genecast.com.cn> for help.')
     subparsers = parser.add_subparsers(

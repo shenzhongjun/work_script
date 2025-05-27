@@ -80,7 +80,7 @@ def run_pyclone(pd_merge, wes_id, purity, outdir):
     -i {wes_id}.pyclone-vi.h5 \
     -o {wes_id}.pyclone-vi.output.txt
 """
-    # subprocess.call(cmd, shell=True)
+    subprocess.call(cmd, shell=True)
     pyclone_df = pd.read_table(f"{outdir}/{wes_id}.pyclone-vi.output.txt", low_memory=False)
     pyclone_df = pyclone_df.sort_values('cellular_prevalence', ascending=False)     # 排序后取细胞占比大的id作为主克隆id
     main_cluster = pyclone_df.loc[0, 'cluster_id']

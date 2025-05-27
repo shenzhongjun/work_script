@@ -34,6 +34,7 @@ class Vcf(object):
         self.tumor = ''                             # vcf表头中tumor样本名
         self.tumor2 = ''                            # WES+Panel组合中Panel样本名
         self.normal = ''                            # vcf表头中normal样本名
+        self.normal2 = ''                           # WES+Panel组合中Panel对照样本名
         self.vcf_samples = []                       # vcf表头中所有样本名
         self.mut_df = pd.DataFrame()                # vcf内容
 
@@ -44,12 +45,15 @@ class Vcf(object):
         for line in f:
             if line.startswith('#'):
                 line = line.strip()
-                if line.startswith('##tumor_sample'):
+                if line.startswith('##tumor_sample2'):
+                    self.tumor2 = line.strip().split('=')[1]
+                elif line.startswith('##tumor_sample'):
                     self.tumor = line.strip().split('=')[1]
                     if self.tag != 'Haplotype':     # Haplotype涉及到多个T，单独处理
                         self.other.append(line)
-                elif line.startswith('##tumor_sample2'):
-                    self.tumor2 = line.strip().split('=')[1]
+                elif line.startswith('##normal_sample2'):
+                    self.normal2 = line.strip().split('=')[1]
+                    self.other.append(line)
                 elif line.startswith('##normal_sample'):
                     self.normal = line.strip().split('=')[1]
                     self.other.append(line)

@@ -3,7 +3,7 @@
 
 """
 VCF的构建、合并与过滤
-注：不适用成对样call胚系，待更新
+注：开发版，适配成对样call胚系。当前已更新到使用版；2023年5月24日17:27:34
 """
 
 __author__ = "ZhouYiJie"
@@ -34,6 +34,7 @@ class Vcf(object):
         self.tumor = ''                             # vcf表头中tumor样本名
         self.tumor2 = ''                            # WES+Panel组合中Panel样本名
         self.normal = ''                            # vcf表头中normal样本名
+        self.normal2 = ''                           # WES+Panel组合中Panel对照样本名
         self.vcf_samples = []                       # vcf表头中所有样本名
         self.mut_df = pd.DataFrame()                # vcf内容
 
@@ -53,6 +54,9 @@ class Vcf(object):
                 elif line.startswith('##normal_sample'):
                     self.normal = line.strip().split('=')[1]
                     self.other.append(line)
+                elif line.startswith('##normal_sample2'):
+                    self.normal2 = line.strip().split('=')[1]
+                    self.other.append(line)
                 elif line.startswith('##FILTER'):
                     self.filter.append(line)
                 elif line.startswith('##source'):
@@ -68,7 +72,6 @@ class Vcf(object):
                         self.headerline = self.check_header(line)
                     elif self.tag == 'Haplotype':
                         self.headerline = line
-                        self.normal = line.split('\t')[9]
                         self.vcf_samples = line.split('\t')[9:]
                     else:
                         self.tumor, self.normal = line.split('\t')[9:]
@@ -126,6 +129,7 @@ class Vcf(object):
             w.write('\n'.join(self.contig) + '\n' if self.contig else '')   # Vardict原始vcf没有contig
             w.write('\n'.join(self.other) + '\n')
             w.write(f'{self.headerline}\n')
+        self.mut_df.drop_duplicates(keep='first', inplace=True)
         self.mut_df.to_csv(self.path, mode='a', header=False, sep='\t', index=False)
 
     # ======================VCF合并相关=======================
@@ -168,7 +172,7 @@ class Vcf(object):
         )
         haplo_half['info'] += ';SOFT=Haplotype'
         haplo_half['id'] = '.'  # rsIDs可以通过注释软件获得，且有rsID干扰vep的'Uploaded_variation'列
-        # haplo_half[self.tumor] = haplo_half[self.tumor].apply(lambda x: '1/1:0,0:0:0:0' if './.' in x else x)
+        haplo_half[self.tumor] = haplo_half[self.tumor].apply(lambda x: '1/1:0,0:0:0:0' if './.' in x else x)
         return haplo_half
 
     @staticmethod
@@ -206,6 +210,7 @@ class Vcf(object):
         filter_tags = set(x['filter'].split(';'))
         soft = re.search('SOFT=(.*)', x['info']).group(1)
         if x['format'].startswith('GT:AD:DP'):      # Haplotype格式FORMAT列
+            print(x)
             vaf = float(int(x[n].split(':')[1].split(',')[1])/int(x[n].split(':')[2]))
         else:       # Mutect2格式FORMAT列
             vaf = float(x[n].split(':')[2])

@@ -7,7 +7,7 @@
 #    1): scatter annotate gene
 # updata 211230
 #    1): trans to python3
-""" ctCNV : an novel algorithm to detect SCNA in cfDNA samples. """
+""" callCNV : an novel algorithm to detect SCNA in cfDNA samples. """
 
 import argparse
 import collections
@@ -34,7 +34,7 @@ __version__ = "0.2.0"
 
 def print_version(_args):
     """Display version"""
-    print("ctCNV version: %r" % __version__)
+    print("callCNV version: %r" % __version__)
 
 
 def report_bad_line(line_parser):
@@ -498,8 +498,7 @@ def ref_region_Z(ref_data, bamfs):
         s_short = s.split("-log2")[0]
         print(s, s_short)
         sl.append(s_short)
-        ref_data[s_short] = (
-                                    ref_data[s] - ref_data2.iloc[:, -3]) / ref_data2.iloc[:, -2]
+        ref_data[s_short] = (ref_data[s] - ref_data2.iloc[:, -3]) / ref_data2.iloc[:, -2]
     return ref_data[h1 + h2 + sl]
 
 
@@ -533,8 +532,7 @@ def sample_region_Z(sample_data, ref_data):
     result[name + '-RZ'] = (
                                    result.iloc[:, -1] - result.iloc[:, -4]) / result.iloc[:, -3]
     result = result.dropna()
-    result[name + '-CopyRatio'] = (
-                                          result.iloc[:, -2] - result.iloc[:, -3]) - np.median(
+    result[name + '-CopyRatio'] = (result.iloc[:, -2] - result.iloc[:, -3]) - np.median(
         (result.iloc[:, -2] - result.iloc[:, -3]))
     return result[result[name + '-RZ'].notnull()]
 
@@ -856,7 +854,7 @@ def _cmd_call(args):
 
 
 def _cmd_autocall(args):
-    """A batch commands to run ctCNV pipeline based on existing
+    """A batch commands to run callCNV pipeline based on existing
     reference files (COV and GCS) and tumor sample bam.
     """
     output_dir = args.output_dir
@@ -1132,7 +1130,7 @@ def _cmd_scatter(args):
 def main():
     """ Main command line parser"""
     parser = argparse.ArgumentParser(
-        description="""ctCNV: A novel algorithm for identification of Somatic
+        description="""callCNV: A novel algorithm for identification of Somatic
                     Copy Number Variations in tumor plasma cfDNA sample.""",
         epilog='Contact Hao Guo <guo.hao@genecast.com.cn> for help.')
     subparsers = parser.add_subparsers(

@@ -81,6 +81,7 @@ def Get_out(pd_merge, tissue_id, purity, outdir):
 def main():
     argv = Init_args()
     pd_merge = Merge_filter(argv.merge, argv.tissue_id, argv.wes_stats)
+    print(pd_merge)
     pd_merge['major_cn'] = pd_merge.apply(lambda x: Get_cnv(argv.cnvkit, x), axis=1)
     Get_out(pd_merge, argv.tissue_id, argv.purity, argv.outdir)
 

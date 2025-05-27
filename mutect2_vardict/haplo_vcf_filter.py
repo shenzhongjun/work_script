@@ -27,6 +27,7 @@ def get_args():
     parser.add_argument('--tumor', '-t', help='肿瘤样本名', required=True)
     parser.add_argument('--normal', '-n', help='对照样本名', required=True)
     parser.add_argument('--tumor2', '-t2', help='WES+Panel检测中的Panel肿瘤样本名')
+    parser.add_argument('--normal2', '-n2', help='WES+Panel检测中的Panel对照样本名')
     return parser.parse_args()
 
 
@@ -61,7 +62,7 @@ def tag_vcf(x, t, n):
         sor = float(re.search("SOR=(.*)", x['info']).group(1)) if 'SOR=' in x['info'] else 0
 
         if (x['ref'] == '*' or x['alt'] == '*' or len(x['ref']) >= 30 or len(x['alt']) >= 30 or fs > 80 or mq < 40 or
-                qd < 1 or rpos < -20 or sor > 20 or normal_vaf < 0.25 or normal_total_reads < 15 or normal_reads < 5 or
+                qd < 1 or rpos < -20 or sor > 20 or normal_vaf < 0.25 or normal_total_reads < 20 or normal_reads < 5 or
                 total_reads < 20 or reads < 5):
             x['filter'] = '.'
     return x
@@ -75,6 +76,7 @@ if __name__ == "__main__":
     tumor = args.tumor
     normal = args.normal
     tumor2 = args.tumor2
+    normal2 = args.normal2
 
     with gzip.open(input_vcf, 'rt') as f, open(output_vcf, 'wt') as w:
         for line in f:
@@ -84,9 +86,11 @@ if __name__ == "__main__":
                 header = line
                 vcf_samples = line.strip().split('\t')[9:]
         w.write(f'##tumor_sample={tumor}\n')
+        w.write(f'##normal_sample={normal}\n')
         if tumor2:
             w.write(f'##tumor_sample2={tumor2}\n')
-        w.write(f'##normal_sample={normal}\n')
+            w.write(f'##normal_sample2={normal2}\n')
+
         w.write(f'##Haplotype_vcf_filterCommand="python {os.path.abspath(__file__)} -i {input_vcf} -o {output_gzvcf} -t {tumor} -n {normal}"\n')
         w.write(header)
 

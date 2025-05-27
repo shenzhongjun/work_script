@@ -29,20 +29,24 @@
     "Gene": "基因ID", "Feature": "转录本ID", "STRAND": "基因方向", "VARIANT_CLASS": "突变方式",
     "pathogenicity": "致癌性分类", "points": "分值", "evidence": "证据条目", "Interpro_domain": "Interpro结构域", "UniProt": "UniProt结构域",
     "OncoKB": "OncoKB结论", "COSMIC": "COSV号", "COSMIC_LEGACY_ID": "COSM号", "COSMIC_CNT": "COSMIC样本数", "AA_Change_Count": "Hotspot样本数",
-    "ClinVar": "Clinvar号", "ClinVar_CLNVI": "ClinGen号", "ClinVar_CLNSIG": "Clinvar结论", "ClinVar_CLNREVSTAT":"Clinvar证据", "ClinVar_CLNDN": "Clinvar疾病",
-    "max_af": "MAX_AF", "AF": "1000g_AF", "EAS_AF": "1000g_EAS_AF", "AFR_AF": "1000g_AFR_AF", "AMR_AF": "1000g_AMR_AF",
-    "EUR_AF": "1000g_EUR_AF", "SAS_AF": "1000g_SAS_AF",
+    "ClinVar": "Clinvar号", "ClinVar_CLNVI": "ClinGen号", "ClinVar_CLNSIG": "Clinvar遗传结论", "ClinVar_CLNREVSTAT":"Clinvar遗传证据",
+    "ClinVar_CLNDN": "Clinvar遗传疾病", "ClinVar_ONC": "Clinvar肿瘤结论", "ClinVar_ONCDN": "Clinvar肿瘤疾病", "ClinVar_ONCREVSTAT": "Clinvar肿瘤证据",
+    "gnomAD_exomes_flag": "gnomADe_flag", "gnomAD_exomes_controls_AF": "gnomADe_AF", "gnomAD_exomes_controls_EAS_AF": "gnomADe_EAS_AF",
+    "gnomAD_exomes_controls_AFR_AF": "gnomADe_AFR_AF", "gnomAD_exomes_controls_AMR_AF": "gnomADe_AMR_AF",
+    "gnomAD_exomes_controls_NFE_AF": "gnomADe_NFE_AF", "gnomAD_exomes_controls_SAS_AF": "gnomADe_SAS_AF",
+    "AF": "1000g_AF", "EAS_AF": "1000g_EAS_AF", "AFR_AF": "1000g_AFR_AF", "AMR_AF": "1000g_AMR_AF", "EUR_AF": "1000g_EUR_AF", "SAS_AF": "1000g_SAS_AF",
     "PUBMED": "PubMed文献", "MutationTaster_pred": "MutationTaster预测", "SpliceAI_pred": "SpliceAI预测", "filter": "突变过滤标签"
   },
   "final_col_list": [
     "突变编号", "总深度_肿瘤", "突变深度_肿瘤", "突变率_肿瘤", "总深度_对照", "突变深度_对照", "突变率_对照",
     "突变可靠性", "突变来源", "致癌性分类", "分值", "证据条目", "突变类型", "突变小类",
     "基因", "基因ID", "转录本ID", "染色体", "起始位置", "终止位置", "参考碱基", "突变碱基", "HGVSg", "HGVSc", "HGVSp",
-    "氨基酸改变", "基因方向", "突变位置", "rs号", "OncoKB结论", "Clinvar号", "ClinGen号", "Clinvar结论", "Clinvar证据", "Clinvar疾病",
+    "氨基酸改变", "基因方向", "突变位置", "rs号", "OncoKB结论", "Clinvar号", "ClinGen号", "Clinvar遗传结论", "Clinvar遗传证据",
+    "Clinvar遗传疾病", "Clinvar肿瘤结论", "Clinvar肿瘤证据", "Clinvar肿瘤疾病",
     "COSV号", "COSM号", "COSMIC样本数", "Hotspot样本数", "Interpro结构域", "UniProt结构域",
     "疾病omim", "遗传方式", "疾病表型",
     "MAX_AF", "1000g_AF", "1000g_EAS_AF", "1000g_AFR_AF", "1000g_AMR_AF", "1000g_EUR_AF", "1000g_SAS_AF",
-    "gnomADe_AF", "gnomADe_EAS_AF", "gnomADe_AFR_AF", "gnomADe_AMR_AF", "gnomADe_NFE_AF", "gnomADe_SAS_AF",
+    "gnomADe_flag", "gnomADe_AF", "gnomADe_EAS_AF", "gnomADe_AFR_AF", "gnomADe_AMR_AF", "gnomADe_NFE_AF", "gnomADe_SAS_AF",
     "WBBC_AF", "WBBC_North_AF","WBBC_Central_AF","WBBC_South_AF","WBBC_Lingnan_AF",
     "CADD预测", "FATHMM预测", "SIFT预测", "Polyphen2_HDIV预测", "MutationTaster预测", "VEST4预测",
     "REVEL预测", "SpliceAI预测", "dbscSNV预测",
@@ -50,7 +54,7 @@
   ],
   "amino_acids_dict": {"Ala": "A", "Phe": "F", "Cys": "C", "Sec": "U", "Asp": "D", "Asn": "N", "Glu": "E", "Gln": "Q",
     "Gly": "G", "His": "H", "Leu": "L", "Ile": "I", "Lys": "K", "Pyl": "O", "Met": "M", "Pro": "P", "Arg": "R",
-    "Ser": "S", "Thr": "T", "Val": "V", "Trp": "W", "Tyr": "Y", "Ter": "*"
+    "Ser": "S", "Thr": "T", "Val": "V", "Trp": "W", "Tyr": "Y", "Ter": "X"
   },
   "key_col_list": [
     "突变编号", "总深度_肿瘤", "突变深度_肿瘤", "突变率_肿瘤", "总深度_对照", "突变深度_对照", "突变率_对照",
@@ -72,5 +76,18 @@
     "": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
     "总分": ["10分及以上", "6~9分", "0~5分", "-6~-1分", "-7分及以下", "", "", "", "", "", "", "", "", "", "", "", ""],
     "致癌性分类": ["致癌", "可能致癌", "意义不明", "可能良性", "良性", "", "", "", "", "", "", "", "", "", "", "", ""]
-  }
+  },
+  "comm_cols": [
+    "致癌性分类", "分值", "证据条目", "突变类型", "突变小类", "基因", "基因ID", "转录本ID",
+    "染色体", "起始位置", "终止位置", "参考碱基", "突变碱基", "HGVSg", "HGVSc", "HGVSp", "氨基酸改变",
+    "基因方向", "突变位置", "rs号", "OncoKB结论", "Clinvar号", "ClinGen号", "Clinvar遗传结论", "Clinvar遗传证据",
+    "Clinvar遗传疾病", "Clinvar肿瘤结论", "Clinvar肿瘤证据", "Clinvar肿瘤疾病",
+    "COSV号", "COSM号", "COSMIC样本数", "Hotspot样本数", "Interpro结构域", "UniProt结构域", "疾病omim",
+    "遗传方式", "疾病表型", "MAX_AF", "1000g_AF", "1000g_EAS_AF", "1000g_AFR_AF", "1000g_AMR_AF",
+    "1000g_EUR_AF",
+    "1000g_SAS_AF", "gnomADe_AF", "gnomADe_EAS_AF", "gnomADe_AFR_AF", "gnomADe_AMR_AF", "gnomADe_NFE_AF",
+    "gnomADe_SAS_AF", "WBBC_AF", "WBBC_North_AF", "WBBC_Central_AF", "WBBC_South_AF", "WBBC_Lingnan_AF",
+    "CADD预测", "FATHMM预测", "SIFT预测", "Polyphen2_HDIV预测", "MutationTaster预测", "VEST4预测", "REVEL预测",
+    "SpliceAI预测", "dbscSNV预测", "软件来源", "超级白名单", "重复区域", "突变过滤标签", "VCF位置"
+  ]
 }
